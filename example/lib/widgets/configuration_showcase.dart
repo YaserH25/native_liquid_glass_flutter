@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:native_liquid_glass_flutter/native_liquid_glass_flutter.dart';
 
 import 'example_section.dart';
+import 'navigation_showcase.dart';
 import 'showcase_list.dart';
 
 class ConfigurationShowcase extends StatefulWidget {
@@ -72,14 +73,7 @@ class ConfigurationShowcaseState extends State<ConfigurationShowcase> {
             ),
           ],
         ),
-        ExampleSection(
-          title: 'Navigation',
-          children: const <Widget>[
-            Text('Use the bottom tabs to switch sections.'),
-            SizedBox(height: 8),
-            Text('The top and bottom bars are part of the showcase.'),
-          ],
-        ),
+        const NavigationShowcase(),
       ],
     );
   }

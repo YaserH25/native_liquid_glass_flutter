@@ -152,6 +152,18 @@ class RunnerTests: XCTestCase {
     XCTAssertNil(configuration.locale)
   }
 
+  func testNavigationBarConfigurationUsesDirectionalBackIndicatorSymbol() {
+    let ltrConfiguration = LiquidGlassNavigationBarConfiguration(arguments: [
+      "isRtl": NSNumber(value: false)
+    ])
+    let rtlConfiguration = LiquidGlassNavigationBarConfiguration(arguments: [
+      "isRtl": NSNumber(value: true)
+    ])
+
+    XCTAssertEqual(ltrConfiguration.backIndicatorSymbolName, "chevron.backward")
+    XCTAssertEqual(rtlConfiguration.backIndicatorSymbolName, "chevron.forward")
+  }
+
   func testNavigationBarBackCoordinatorOnlyHandlesEnabledVisibleTopItem() {
     let coordinator = LiquidGlassNavigationBarBackCoordinator()
     let previousItem = UINavigationItem(title: "")
@@ -196,6 +208,42 @@ class RunnerTests: XCTestCase {
         )
       )
     }
+  }
+
+  func testMenuButtonConfigurationTracksSelectedValue() {
+    let configuration = LiquidGlassMenuButtonConfiguration(arguments: [
+      "title": "Density",
+      "value": "comfortable",
+      "tracksSelection": NSNumber(value: true),
+      "showsTitle": NSNumber(value: true),
+      "actions": [
+        ["title": "Compact", "value": "compact"],
+        ["title": "Comfortable", "value": "comfortable"]
+      ]
+    ])
+
+    XCTAssertTrue(configuration.tracksSelection)
+    XCTAssertTrue(configuration.showsTitle)
+    XCTAssertEqual(configuration.displayTitle, "Density: Comfortable")
+  }
+
+  func testMenuButtonConfigurationSupportsIconOnlyPullDownActions() {
+    let configuration = LiquidGlassMenuButtonConfiguration(arguments: [
+      "title": "Actions",
+      "value": "",
+      "tracksSelection": NSNumber(value: false),
+      "showsTitle": NSNumber(value: false),
+      "symbol": "ellipsis.circle",
+      "actions": [
+        ["title": "Duplicate", "value": "duplicate"],
+        ["title": "Archive", "value": "archive"]
+      ]
+    ])
+
+    XCTAssertFalse(configuration.tracksSelection)
+    XCTAssertFalse(configuration.showsTitle)
+    XCTAssertEqual(configuration.symbol, "ellipsis.circle")
+    XCTAssertEqual(configuration.displayTitle, "")
   }
 
   func testSurfaceBackdropViewDoesNotCaptureTouches() {

@@ -15,10 +15,16 @@ class ExampleHomePage extends StatefulWidget {
 class ExampleHomePageState extends State<ExampleHomePage> {
   int selectedIndex = 0;
 
+  static const List<String> pageTitles = <String>[
+    'Controls',
+    'Overlays',
+    'Config',
+  ];
+
   @override
   Widget build(BuildContext context) {
     return LiquidGlassScaffold(
-      appBar: const LiquidGlassAppBar(center: Icon(Icons.auto_awesome_rounded)),
+      appBar: LiquidGlassAppBar(title: Text(pageTitles[selectedIndex])),
       bottomNavigationBar: LiquidGlassTabBar(
         selectedIndex: selectedIndex,
         onSelected: (index) => setState(() => selectedIndex = index),

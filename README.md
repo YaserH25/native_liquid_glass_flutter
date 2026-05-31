@@ -15,8 +15,9 @@ used automatically for chrome, floating surfaces, and modals, or anywhere you
 explicitly opt in with `LiquidGlassNativePolicy.native`.
 
 The example app is a component gallery. It covers surfaces, navigation, live
-sliders, switches, segmented controls, steppers, sheets, alerts, action sheets,
-option pickers, date/time pickers, share sheets, and configuration changes.
+sliders, switches, segmented controls, steppers, menus, pull-down buttons,
+sheets, alerts, action sheets, option pickers, date/time pickers, share sheets,
+and configuration changes.
 
 ## Installation
 
@@ -98,6 +99,7 @@ class HomePage extends StatelessWidget {
 | `LiquidGlassSegmentedControl` | Flutter `SegmentedButton` by default, optional `UISegmentedControl` with native policy | Flutter `SegmentedButton` |
 | `LiquidGlassStepper` | Flutter icon buttons by default, optional `UIStepper` with native policy | Flutter icon buttons |
 | `LiquidGlassMenuButton` | `UIButton` with native `UIMenu` and `UIAction` items | Flutter option picker |
+| `LiquidGlassPullDownButton` | `UIButton` with native `UIMenu` command actions | Flutter option picker |
 | `showLiquidGlassActionSheet` | `UIAlertController.actionSheet` | Package glass bottom sheet |
 | `showLiquidGlassAlert` | `UIAlertController.alert` | Package glass dialog |
 | `showLiquidGlassOptionPicker` | `UIAlertController.actionSheet` | Package glass action sheet |
@@ -220,6 +222,47 @@ LiquidGlassMenuButton(
     LiquidGlassAction(title: 'Compact', value: 'compact'),
     LiquidGlassAction(title: 'Comfortable', value: 'comfortable'),
     LiquidGlassAction(title: 'Spacious', value: 'spacious'),
+  ],
+)
+```
+
+`LiquidGlassPullDownButton` uses the same native `UIMenu` bridge for related
+commands. It does not track a selected value or change its title after a command
+runs.
+
+```dart
+LiquidGlassPullDownButton(
+  title: 'More',
+  width: 128,
+  onSelected: (value) => handleCommand(value),
+  actions: const <LiquidGlassAction>[
+    LiquidGlassAction(title: 'Duplicate', value: 'duplicate'),
+    LiquidGlassAction(title: 'Archive', value: 'archive'),
+    LiquidGlassAction(
+      title: 'Delete',
+      value: 'delete',
+      role: LiquidGlassActionRole.destructive,
+    ),
+  ],
+)
+```
+
+Leave `width` unset for full-width settings rows. Set it for compact toolbar,
+form, or inline command cases.
+
+For compact toolbar actions, keep the accessibility title and provide both a
+Flutter icon and the matching native SF Symbol name.
+
+```dart
+LiquidGlassPullDownButton(
+  title: 'Actions',
+  icon: const Icon(Icons.more_horiz_rounded),
+  nativeSymbol: 'ellipsis.circle',
+  showTitle: false,
+  onSelected: (value) => handleCommand(value),
+  actions: const <LiquidGlassAction>[
+    LiquidGlassAction(title: 'Duplicate', value: 'duplicate'),
+    LiquidGlassAction(title: 'Archive', value: 'archive'),
   ],
 )
 ```
@@ -352,8 +395,8 @@ The package is split by responsibility:
   identifiers.
 - `surfaces`: the native-backed glass surface and Flutter fallback.
 - `navigation`: app bar and tab bar composition.
-- `controls`: button plus Flutter-first controls with optional UIKit-backed
-  slider, switch, segmented control, and stepper.
+- `controls`: button, menu, pull-down button, and Flutter-first controls with
+  optional UIKit-backed slider, switch, segmented control, and stepper.
 - `overlays`: sheets, dialogs, action sheets, option picker, date/time picker,
   and share sheet helpers.
 - `scaffolds`: overlay-aware scaffold behavior.

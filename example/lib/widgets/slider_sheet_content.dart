@@ -33,6 +33,7 @@ class SliderSheetContentState extends State<SliderSheetContent> {
           onChangeEnd: (nextValue) => setState(() => value = nextValue),
         ),
         Text('${(value * 100).round()}%'),
+        const SizedBox(height: 16),
       ],
     );
   }

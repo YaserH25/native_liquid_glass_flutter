@@ -3,6 +3,7 @@ import 'package:native_liquid_glass_flutter/native_liquid_glass_flutter.dart';
 
 import 'example_section.dart';
 import 'showcase_list.dart';
+import 'ui_menu_showcase.dart';
 
 class OverlayShowcase extends StatefulWidget {
   const OverlayShowcase({super.key});
@@ -13,7 +14,6 @@ class OverlayShowcase extends StatefulWidget {
 
 class OverlayShowcaseState extends State<OverlayShowcase> {
   String selectedOption = 'regular';
-  String selectedMenuOption = 'comfortable';
   TimeOfDay selectedTime = const TimeOfDay(hour: 8, minute: 30);
   DateTime selectedDate = DateTime(2026, 5, 31);
   String lastResult = 'No overlay opened';
@@ -23,7 +23,7 @@ class OverlayShowcaseState extends State<OverlayShowcase> {
     return ShowcaseList(
       children: <Widget>[
         ExampleSection(
-          title: 'Bottom sheet',
+          title: 'Sheet scaffold',
           children: <Widget>[
             LiquidGlassButton(
               prominent: true,
@@ -52,29 +52,10 @@ class OverlayShowcaseState extends State<OverlayShowcase> {
             ),
           ],
         ),
-        ExampleSection(
-          title: 'Native menu',
-          children: <Widget>[
-            LiquidGlassMenuButton(
-              title: 'Density',
-              value: selectedMenuOption,
-              onChanged: (value) {
-                setState(() {
-                  selectedMenuOption = value;
-                  lastResult = 'Menu: $value';
-                });
-              },
-              options: const <LiquidGlassAction>[
-                LiquidGlassAction(title: 'Compact', value: 'compact'),
-                LiquidGlassAction(
-                  title: 'Comfortable',
-                  value: 'comfortable',
-                  role: LiquidGlassActionRole.preferred,
-                ),
-                LiquidGlassAction(title: 'Spacious', value: 'spacious'),
-              ],
-            ),
-          ],
+        UiMenuShowcase(
+          onSelectionChanged: (result) {
+            setState(() => lastResult = result);
+          },
         ),
         ExampleSection(
           title: 'Option picker',

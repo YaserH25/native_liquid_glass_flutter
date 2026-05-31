@@ -41,6 +41,30 @@ contract. Every new key or method must be covered by:
 - Swift parser/unit test where parsing is non-trivial
 - iOS host build
 
+## Native Component Addition Rule
+
+Every new native component must follow the package bridge pattern:
+
+1. Start from the Apple system control or presentation primitive. If an existing
+   platform view can express the behavior with an explicit bridge flag, reuse it
+   instead of registering another view type.
+2. Keep Flutter as the owner of the public API, state, fallback UI, and routing.
+   Native code owns only rendering, gesture delivery, and platform presentation.
+3. Add typed Dart configuration fields, bridge keys, and native parsing together.
+   Avoid ad hoc string keys outside the bridge layer unless the Swift side already
+   uses the established map parser for that component.
+4. Install per-view method handlers with weak native captures, detach Dart
+   handlers in `dispose`, and clear Swift handlers in `deinit`.
+5. Sync configuration in `didChangeDependencies` and `didUpdateWidget` whenever
+   inherited theme, locale, direction, enabled state, or selected value can
+   affect native rendering.
+6. Provide a Flutter fallback for non-iOS and for explicit Flutter policy.
+7. Add tests before implementation: widget/platform-view construction,
+   callback routing, inherited-state resync where applicable, example showcase
+   coverage, and iOS host tests for Swift behavior when native parsing changes.
+8. Add the component to the example showcase with plain visible state, so manual
+   simulator validation can confirm the native interaction and Flutter callback.
+
 ## Lifecycle Rules
 
 Every Swift platform view that installs a method handler must clear it in
@@ -96,6 +120,8 @@ Before release:
 - Native stepper clamps min/max.
 - Native tab bar uses OS icon/label spacing and stays bottom-pinned.
 - Native menu opens as a `UIMenu` and updates Flutter state.
+- Pull-down button opens command actions without changing its title.
+- Icon action menu opens command actions from a compact button.
 - Alert/action sheet/date/time/share overlays return expected values.
 - Theme switch updates mounted native controls.
 - RTL flips directional chrome.

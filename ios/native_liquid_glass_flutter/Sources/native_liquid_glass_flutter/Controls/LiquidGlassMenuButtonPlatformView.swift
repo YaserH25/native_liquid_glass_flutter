@@ -1,6 +1,60 @@
 import Flutter
 import UIKit
 
+struct LiquidGlassMenuButtonConfiguration {
+  let title: String
+  let selectedTitle: String
+  let tracksSelection: Bool
+  let showsTitle: Bool
+  let symbol: String?
+
+  init(arguments: [String: Any]) {
+    self.title = arguments["title"] as? String ?? ""
+    self.tracksSelection = Self.bool(from: arguments["tracksSelection"]) ?? true
+    self.showsTitle = Self.bool(from: arguments["showsTitle"]) ?? true
+    self.symbol = arguments["symbol"] as? String
+
+    if tracksSelection {
+      self.selectedTitle = Self.titleForSelectedAction(in: arguments)
+    } else {
+      self.selectedTitle = ""
+    }
+  }
+
+  var displayTitle: String {
+    guard showsTitle else {
+      return ""
+    }
+
+    return selectedTitle.isEmpty ? title : "\(title): \(selectedTitle)"
+  }
+
+  static func actionMaps(from value: Any?) -> [[String: Any]] {
+    return value as? [[String: Any]] ?? []
+  }
+
+  static func bool(from value: Any?) -> Bool? {
+    if let bool = value as? Bool {
+      return bool
+    }
+    if let number = value as? NSNumber {
+      return number.boolValue
+    }
+    return nil
+  }
+
+  private static func titleForSelectedAction(in map: [String: Any]) -> String {
+    let selectedValue = map["value"] as? String
+    let actions = actionMaps(from: map["actions"])
+    for actionMap in actions {
+      if actionMap["value"] as? String == selectedValue {
+        return actionMap["title"] as? String ?? ""
+      }
+    }
+    return ""
+  }
+}
+
 final class LiquidGlassMenuButtonPlatformView: NSObject, FlutterPlatformView {
   private let containerView: UIView
   private let button: UIButton
@@ -73,43 +127,48 @@ final class LiquidGlassMenuButtonPlatformView: NSObject, FlutterPlatformView {
     let map = arguments as? [String: Any] ?? [:]
     currentConfiguration = map
 
-    let selectedTitle = titleForSelectedAction(in: map)
+    let menuConfiguration = LiquidGlassMenuButtonConfiguration(arguments: map)
     let tintColor = LiquidGlassSurfaceConfiguration.color(
       from: map["tintColor"] as? NSNumber
     )
-    let isDark = Self.bool(from: map["isDark"]) ?? false
-    let isRtl = Self.bool(from: map["isRtl"]) ?? false
+    let isDark = LiquidGlassMenuButtonConfiguration.bool(from: map["isDark"]) ?? false
+    let isRtl = LiquidGlassMenuButtonConfiguration.bool(from: map["isRtl"]) ?? false
 
     containerView.overrideUserInterfaceStyle = isDark ? .dark : .light
     containerView.semanticContentAttribute = isRtl
       ? .forceRightToLeft
       : .forceLeftToRight
 
-    button.isEnabled = Self.bool(from: map["enabled"]) ?? true
+    button.isEnabled =
+      LiquidGlassMenuButtonConfiguration.bool(from: map["enabled"]) ?? true
     button.tintColor = tintColor
+    button.accessibilityLabel = menuConfiguration.title
     button.overrideUserInterfaceStyle = isDark ? .dark : .light
     button.semanticContentAttribute = isRtl
       ? .forceRightToLeft
       : .forceLeftToRight
 
-    applyButtonStyle(map: map, selectedTitle: selectedTitle, tintColor: tintColor)
-    installMenu(map: map)
+    applyButtonStyle(configuration: menuConfiguration, tintColor: tintColor)
+    installMenu(map: map, configuration: menuConfiguration)
   }
 
   private func applyButtonStyle(
-    map: [String: Any],
-    selectedTitle: String,
+    configuration menuConfiguration: LiquidGlassMenuButtonConfiguration,
     tintColor: UIColor
   ) {
-    let title = map["title"] as? String ?? ""
-    let displayTitle = selectedTitle.isEmpty ? title : "\(title): \(selectedTitle)"
-
     if #available(iOS 15.0, *) {
       var configuration = UIButton.Configuration.tinted()
-      configuration.title = displayTitle
-      configuration.image = UIImage(systemName: "chevron.down")
-      configuration.imagePlacement = .trailing
-      configuration.imagePadding = 8
+      let displayTitle = menuConfiguration.displayTitle
+      configuration.title = displayTitle.isEmpty ? nil : displayTitle
+      if let symbol = menuConfiguration.symbol, !symbol.isEmpty {
+        configuration.image = UIImage(systemName: symbol)
+        configuration.imagePlacement = .leading
+        configuration.imagePadding = displayTitle.isEmpty ? 0 : 8
+      } else {
+        configuration.image = UIImage(systemName: "chevron.down")
+        configuration.imagePlacement = .trailing
+        configuration.imagePadding = 8
+      }
       configuration.baseForegroundColor = tintColor
       configuration.baseBackgroundColor = tintColor.withAlphaComponent(0.14)
       configuration.cornerStyle = .capsule
@@ -121,7 +180,13 @@ final class LiquidGlassMenuButtonPlatformView: NSObject, FlutterPlatformView {
       )
       button.configuration = configuration
     } else {
-      button.setTitle(displayTitle, for: .normal)
+      let displayTitle = menuConfiguration.displayTitle
+      button.setTitle(displayTitle.isEmpty ? nil : displayTitle, for: .normal)
+      if let symbol = menuConfiguration.symbol, !symbol.isEmpty {
+        button.setImage(UIImage(systemName: symbol), for: .normal)
+      } else {
+        button.setImage(UIImage(systemName: "chevron.down"), for: .normal)
+      }
       button.setTitleColor(tintColor, for: .normal)
       button.backgroundColor = tintColor.withAlphaComponent(0.14)
       button.layer.cornerRadius = 20
@@ -134,14 +199,19 @@ final class LiquidGlassMenuButtonPlatformView: NSObject, FlutterPlatformView {
     }
   }
 
-  private func installMenu(map: [String: Any]) {
+  private func installMenu(
+    map: [String: Any],
+    configuration: LiquidGlassMenuButtonConfiguration
+  ) {
     guard #available(iOS 14.0, *) else {
       return
     }
 
     let title = map["title"] as? String ?? ""
     let selectedValue = map["value"] as? String
-    let actions = Self.actionMaps(from: map["actions"])
+    let actions = LiquidGlassMenuButtonConfiguration.actionMaps(
+      from: map["actions"]
+    )
     let children = actions.map { actionMap in
       let actionTitle = actionMap["title"] as? String ?? ""
       let actionValue = actionMap["value"] as? String ?? actionTitle
@@ -157,7 +227,7 @@ final class LiquidGlassMenuButtonPlatformView: NSObject, FlutterPlatformView {
         identifier: UIAction.Identifier(actionValue),
         discoverabilityTitle: nil,
         attributes: attributes,
-        state: actionValue == selectedValue ? .on : .off
+        state: configuration.tracksSelection && actionValue == selectedValue ? .on : .off
       ) { [weak self] _ in
         self?.select(value: actionValue)
       }
@@ -165,6 +235,9 @@ final class LiquidGlassMenuButtonPlatformView: NSObject, FlutterPlatformView {
 
     button.menu = UIMenu(title: title, children: children)
     button.showsMenuAsPrimaryAction = true
+    if #available(iOS 15.0, *) {
+      button.changesSelectionAsPrimaryAction = configuration.tracksSelection
+    }
   }
 
   @objc private func fallbackTap() {
@@ -172,7 +245,9 @@ final class LiquidGlassMenuButtonPlatformView: NSObject, FlutterPlatformView {
       return
     }
 
-    let actions = Self.actionMaps(from: currentConfiguration["actions"])
+    let actions = LiquidGlassMenuButtonConfiguration.actionMaps(
+      from: currentConfiguration["actions"]
+    )
     guard let firstAction = actions.first,
       let value = firstAction["value"] as? String
     else {
@@ -183,33 +258,14 @@ final class LiquidGlassMenuButtonPlatformView: NSObject, FlutterPlatformView {
   }
 
   private func select(value: String) {
-    currentConfiguration["value"] = value
-    configure(arguments: currentConfiguration)
+    let tracksSelection =
+      LiquidGlassMenuButtonConfiguration.bool(
+        from: currentConfiguration["tracksSelection"]
+      ) ?? true
+    if tracksSelection {
+      currentConfiguration["value"] = value
+      configure(arguments: currentConfiguration)
+    }
     channel.invokeMethod("onChanged", arguments: value)
-  }
-
-  private func titleForSelectedAction(in map: [String: Any]) -> String {
-    let selectedValue = map["value"] as? String
-    let actions = Self.actionMaps(from: map["actions"])
-    for actionMap in actions {
-      if actionMap["value"] as? String == selectedValue {
-        return actionMap["title"] as? String ?? ""
-      }
-    }
-    return ""
-  }
-
-  private static func actionMaps(from value: Any?) -> [[String: Any]] {
-    return value as? [[String: Any]] ?? []
-  }
-
-  private static func bool(from value: Any?) -> Bool? {
-    if let bool = value as? Bool {
-      return bool
-    }
-    if let number = value as? NSNumber {
-      return number.boolValue
-    }
-    return nil
   }
 }

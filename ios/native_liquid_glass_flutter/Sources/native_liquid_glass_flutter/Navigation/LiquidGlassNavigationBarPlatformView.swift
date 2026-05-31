@@ -9,6 +9,9 @@ struct LiquidGlassNavigationBarConfiguration {
   let isRtl: Bool
   let isDark: Bool
   let locale: String?
+  var backIndicatorSymbolName: String {
+    return isRtl ? "chevron.forward" : "chevron.backward"
+  }
 
   init(arguments: Any?) {
     let map = arguments as? [String: Any] ?? [:]
@@ -205,6 +208,15 @@ final class LiquidGlassNavigationBarPlatformView:
       appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterial)
       appearance.backgroundColor = configuration.backgroundColor
         .withAlphaComponent(configuration.isDark ? 0.86 : 0.78)
+    }
+
+    if let backIndicator = UIImage(
+      systemName: configuration.backIndicatorSymbolName
+    )?.withRenderingMode(.alwaysTemplate) {
+      appearance.setBackIndicatorImage(
+        backIndicator,
+        transitionMaskImage: backIndicator
+      )
     }
 
     return appearance

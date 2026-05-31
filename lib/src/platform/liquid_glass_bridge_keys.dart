@@ -41,6 +41,8 @@ abstract final class LiquidGlassBridgeKeys {
   static const tintColor = 'tintColor';
   static const tintOpacity = 'tintOpacity';
   static const title = 'title';
+  static const tracksSelection = 'tracksSelection';
+  static const showsTitle = 'showsTitle';
   static const value = 'value';
 }
 

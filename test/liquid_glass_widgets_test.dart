@@ -798,6 +798,141 @@ void main() {
     }
   });
 
+  testWidgets(
+    'pull-down button uses native UIMenu without selected state on iOS',
+    (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      try {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: LiquidGlassPullDownButton(
+                title: 'More',
+                nativePolicy: LiquidGlassNativePolicy.native,
+                onSelected: (_) {},
+                actions: const <LiquidGlassAction>[
+                  LiquidGlassAction(title: 'Duplicate', value: 'duplicate'),
+                  LiquidGlassAction(title: 'Archive', value: 'archive'),
+                ],
+              ),
+            ),
+          ),
+        );
+
+        final view = tester.widget<UiKitView>(find.byType(UiKitView));
+        final params = view.creationParams as Map<Object?, Object?>;
+        expect(view.viewType, LiquidGlassPlatform.menuButtonViewType);
+        expect(params['title'], 'More');
+        expect(params['value'], '');
+        expect(params['tracksSelection'], isFalse);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    },
+  );
+
+  testWidgets('native pull-down button action calls Flutter handler', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    var selectedAction = '';
+
+    try {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: LiquidGlassPullDownButton(
+              title: 'More',
+              nativePolicy: LiquidGlassNativePolicy.native,
+              onSelected: (value) => selectedAction = value,
+              actions: const <LiquidGlassAction>[
+                LiquidGlassAction(title: 'Duplicate', value: 'duplicate'),
+                LiquidGlassAction(title: 'Archive', value: 'archive'),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      final state = tester.state<LiquidGlassMenuButtonState>(
+        find.byType(LiquidGlassMenuButton),
+      );
+      await state.handleMethodCall(const MethodCall('onChanged', 'archive'));
+
+      expect(selectedAction, 'archive');
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('pull-down button can present a native icon action menu on iOS', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    try {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: LiquidGlassPullDownButton(
+              title: 'Actions',
+              icon: const Icon(Icons.more_horiz_rounded),
+              nativeSymbol: 'ellipsis.circle',
+              showTitle: false,
+              nativePolicy: LiquidGlassNativePolicy.native,
+              onSelected: (_) {},
+              actions: const <LiquidGlassAction>[
+                LiquidGlassAction(title: 'Duplicate', value: 'duplicate'),
+                LiquidGlassAction(title: 'Archive', value: 'archive'),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      final view = tester.widget<UiKitView>(find.byType(UiKitView));
+      final params = view.creationParams as Map<Object?, Object?>;
+      expect(view.viewType, LiquidGlassPlatform.menuButtonViewType);
+      expect(params['title'], 'Actions');
+      expect(params['symbol'], 'ellipsis.circle');
+      expect(params['showsTitle'], isFalse);
+      expect(params['tracksSelection'], isFalse);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets(
+    'native icon action menu uses a compact square host view on iOS',
+    (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      try {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Center(
+                child: LiquidGlassPullDownButton(
+                  title: 'Actions',
+                  icon: const Icon(Icons.more_horiz_rounded),
+                  nativeSymbol: 'ellipsis.circle',
+                  showTitle: false,
+                  nativePolicy: LiquidGlassNativePolicy.native,
+                  onSelected: (_) {},
+                  actions: const <LiquidGlassAction>[
+                    LiquidGlassAction(title: 'Duplicate', value: 'duplicate'),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+
+        expect(tester.getSize(find.byType(UiKitView)), const Size(50, 50));
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    },
+  );
+
   testWidgets('native control views route gestures eagerly on iOS', (
     tester,
   ) async {
