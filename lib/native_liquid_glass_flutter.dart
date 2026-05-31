@@ -8,6 +8,7 @@ export 'src/controls/liquid_glass_slider.dart';
 export 'src/controls/liquid_glass_stepper.dart';
 export 'src/controls/liquid_glass_switch.dart';
 export 'src/navigation/liquid_glass_app_bar.dart';
+export 'src/navigation/liquid_glass_app_bar_action.dart';
 export 'src/navigation/liquid_glass_native_app_bar.dart';
 export 'src/navigation/liquid_glass_tab_bar.dart';
 export 'src/navigation/liquid_glass_tab_item.dart';

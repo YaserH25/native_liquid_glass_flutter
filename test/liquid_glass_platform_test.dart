@@ -45,6 +45,7 @@ void main() {
           'title': 'Continue',
           'value': 'continue',
           'role': 'normal',
+          'enabled': true,
         },
       ]),
     );
@@ -76,7 +77,12 @@ void main() {
     expect(
       receivedCall?.arguments,
       containsPair('actions', const <Map<String, Object?>>[
-        <String, Object?>{'title': 'OK', 'value': 'ok', 'role': 'normal'},
+        <String, Object?>{
+          'title': 'OK',
+          'value': 'ok',
+          'role': 'normal',
+          'enabled': true,
+        },
       ]),
     );
   });
@@ -181,6 +187,7 @@ void main() {
           'title': 'Regular',
           'value': 'regular',
           'role': 'normal',
+          'enabled': true,
         },
       ]),
     );

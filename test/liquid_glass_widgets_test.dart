@@ -98,6 +98,57 @@ void main() {
     }
   });
 
+  testWidgets('native app bar exposes trailing action bridge on iOS', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    var selectedAction = '';
+
+    try {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            appBar: LiquidGlassAppBar(
+              title: const Text('Reader'),
+              nativeActions: const <LiquidGlassAppBarAction>[
+                LiquidGlassAppBarAction(
+                  title: 'Bookmark',
+                  value: 'bookmark',
+                  nativeSymbol: 'bookmark',
+                ),
+              ],
+              onNativeActionSelected: (value) => selectedAction = value,
+            ),
+            body: const SizedBox.shrink(),
+          ),
+        ),
+      );
+
+      final view = tester.widget<UiKitView>(find.byType(UiKitView));
+      final params = view.creationParams as Map<Object?, Object?>;
+      final actions = params['actions'] as List<Object?>;
+      expect(view.viewType, LiquidGlassPlatform.navigationBarViewType);
+      expect(actions.single, <String, Object?>{
+        'title': 'Bookmark',
+        'value': 'bookmark',
+        'symbol': 'bookmark',
+        'role': 'normal',
+        'enabled': true,
+      });
+
+      final state = tester.state<LiquidGlassNativeAppBarState>(
+        find.byType(LiquidGlassNativeAppBar),
+      );
+      await state.handleMethodCall(
+        const MethodCall('onActionSelected', 'bookmark'),
+      );
+
+      expect(selectedAction, 'bookmark');
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
   testWidgets('app bar fallback height matches preferred height', (
     tester,
   ) async {
@@ -248,6 +299,57 @@ void main() {
             .first,
       );
       expect(sizedBox.height, LiquidGlassTabBar.nativeContentHeight + 34);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('native tab bar exposes badges and disabled items on iOS', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    try {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: LiquidGlassTabBar(
+              selectedIndex: 0,
+              onSelected: (_) {},
+              items: const <LiquidGlassTabItem>[
+                LiquidGlassTabItem(
+                  icon: Icon(Icons.inbox),
+                  label: Text('Inbox'),
+                  nativeSymbol: 'tray',
+                  badge: '3',
+                ),
+                LiquidGlassTabItem(
+                  icon: Icon(Icons.folder),
+                  label: Text('Archive'),
+                  nativeSymbol: 'archivebox',
+                  enabled: false,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      final view = tester.widget<UiKitView>(find.byType(UiKitView));
+      final params = view.creationParams as Map<Object?, Object?>;
+      final items = params['items'] as List<Object?>;
+      expect(items.first, <String, Object>{
+        'label': 'Inbox',
+        'symbol': 'tray',
+        'selectedSymbol': 'tray',
+        'badge': '3',
+        'enabled': true,
+      });
+      expect(items.last, <String, Object>{
+        'label': 'Archive',
+        'symbol': 'archivebox',
+        'selectedSymbol': 'archivebox',
+        'enabled': false,
+      });
     } finally {
       debugDefaultTargetPlatformOverride = null;
     }
@@ -404,6 +506,44 @@ void main() {
       }
     },
   );
+
+  testWidgets('liquid glass sheet detent constrains modal height', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) {
+            return Scaffold(
+              body: LiquidGlassButton(
+                onPressed: () {
+                  showLiquidGlassSheet<void>(
+                    context: context,
+                    detent: LiquidGlassSheetDetent.medium,
+                    builder: (_) => const SizedBox(height: 600),
+                  );
+                },
+                child: const Text('Show detent sheet'),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Show detent sheet'));
+    await tester.pumpAndSettle();
+
+    final constrainedBox = tester.widget<ConstrainedBox>(
+      find
+          .ancestor(
+            of: find.byType(LiquidGlassSheetScaffold),
+            matching: find.byType(ConstrainedBox),
+          )
+          .first,
+    );
+    expect(constrainedBox.constraints.maxHeight, 300);
+  });
 
   testWidgets('button renders child and handles taps', (tester) async {
     var tapped = false;
@@ -595,6 +735,7 @@ void main() {
       'label': 'Home',
       'symbol': 'house',
       'selectedSymbol': 'house.fill',
+      'enabled': true,
     });
   });
 
@@ -762,6 +903,26 @@ void main() {
     }
   });
 
+  test('native actions expose menu customization metadata', () {
+    const action = LiquidGlassAction(
+      title: 'Bookmark',
+      value: 'bookmark',
+      role: LiquidGlassActionRole.preferred,
+      nativeSymbol: 'bookmark',
+      enabled: false,
+      group: 'Primary',
+    );
+
+    expect(action.toPlatformMap(), <String, Object?>{
+      'title': 'Bookmark',
+      'value': 'bookmark',
+      'role': 'preferred',
+      'symbol': 'bookmark',
+      'enabled': false,
+      'group': 'Primary',
+    });
+  });
+
   testWidgets('native menu button selection calls Flutter handler', (
     tester,
   ) async {
@@ -830,6 +991,37 @@ void main() {
       }
     },
   );
+
+  testWidgets('native slider exposes endpoint symbols and continuous mode', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    try {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: LiquidGlassSlider(
+              value: 0.4,
+              nativePolicy: LiquidGlassNativePolicy.native,
+              minimumNativeSymbol: 'speaker.wave.1',
+              maximumNativeSymbol: 'speaker.wave.3',
+              isContinuous: false,
+              onChanged: (_) {},
+            ),
+          ),
+        ),
+      );
+
+      final view = tester.widget<UiKitView>(find.byType(UiKitView));
+      final params = view.creationParams as Map<Object?, Object?>;
+      expect(view.viewType, LiquidGlassPlatform.sliderViewType);
+      expect(params['minimumSymbol'], 'speaker.wave.1');
+      expect(params['maximumSymbol'], 'speaker.wave.3');
+      expect(params['isContinuous'], isFalse);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
 
   testWidgets('native pull-down button action calls Flutter handler', (
     tester,

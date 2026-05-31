@@ -1,6 +1,36 @@
 import Flutter
 import UIKit
 
+struct LiquidGlassTabBarItemConfiguration {
+  let index: Int
+  let title: String?
+  let symbol: String
+  let selectedSymbol: String
+  let badge: String?
+  let enabled: Bool
+
+  init(index: Int, arguments: [String: Any]) {
+    let symbol = arguments["symbol"] as? String ?? "circle"
+
+    self.index = index
+    self.title = arguments["label"] as? String
+    self.symbol = symbol
+    self.selectedSymbol = arguments["selectedSymbol"] as? String ?? symbol
+    self.badge = arguments["badge"] as? String
+    self.enabled = Self.bool(from: arguments["enabled"]) ?? true
+  }
+
+  private static func bool(from value: Any?) -> Bool? {
+    if let bool = value as? Bool {
+      return bool
+    }
+    if let number = value as? NSNumber {
+      return number.boolValue
+    }
+    return nil
+  }
+}
+
 final class LiquidGlassTabBarPlatformView:
   NSObject, FlutterPlatformView, UITabBarDelegate
 {
@@ -117,19 +147,23 @@ final class LiquidGlassTabBarPlatformView:
   private func parseItems(_ rawItems: Any?) -> [UITabBarItem] {
     let itemMaps = rawItems as? [[String: Any]] ?? []
     return itemMaps.enumerated().map { index, map in
-      let title = map["label"] as? String
-      let symbol = map["symbol"] as? String ?? "circle"
-      let selectedSymbol = map["selectedSymbol"] as? String ?? symbol
-      let image = UIImage(systemName: symbol)?.withRenderingMode(.alwaysTemplate)
-      let selectedImage = UIImage(systemName: selectedSymbol)?
+      let configuration = LiquidGlassTabBarItemConfiguration(
+        index: index,
+        arguments: map
+      )
+      let image = UIImage(systemName: configuration.symbol)?
+        .withRenderingMode(.alwaysTemplate)
+      let selectedImage = UIImage(systemName: configuration.selectedSymbol)?
         .withRenderingMode(.alwaysTemplate)
       let item = UITabBarItem(
-        title: title,
+        title: configuration.title,
         image: image,
         selectedImage: selectedImage
       )
-      item.tag = index
-      item.accessibilityLabel = title
+      item.tag = configuration.index
+      item.accessibilityLabel = configuration.title
+      item.badgeValue = configuration.badge
+      item.isEnabled = configuration.enabled
       return item
     }
   }

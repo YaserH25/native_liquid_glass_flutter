@@ -6,6 +6,7 @@ import '../platform/liquid_glass_native_policy.dart'
     show LiquidGlassSurfaceRole;
 import '../platform/liquid_glass_platform.dart';
 import '../surfaces/liquid_glass_surface.dart';
+import 'liquid_glass_app_bar_action.dart';
 import 'liquid_glass_native_app_bar.dart';
 
 class LiquidGlassAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -15,6 +16,8 @@ class LiquidGlassAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.center,
     this.leading,
     this.actions = const <Widget>[],
+    this.nativeActions = const <LiquidGlassAppBarAction>[],
+    this.onNativeActionSelected,
     this.automaticallyImplyLeading = true,
     this.configuration,
     this.height,
@@ -25,6 +28,8 @@ class LiquidGlassAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? center;
   final Widget? leading;
   final List<Widget> actions;
+  final List<LiquidGlassAppBarAction> nativeActions;
+  final ValueChanged<String>? onNativeActionSelected;
   final bool automaticallyImplyLeading;
   final LiquidGlassConfiguration? configuration;
   final double? height;
@@ -44,11 +49,18 @@ class LiquidGlassAppBar extends StatelessWidget implements PreferredSizeWidget {
         title: nativeTitle!,
         canGoBack: automaticallyImplyLeading && canPop,
         onBack: () => Navigator.maybePop(context),
+        actions: nativeActions,
+        onActionSelected: onNativeActionSelected,
         configuration: configuration,
         height: height,
       );
     }
 
+    final resolvedActions = actions.isNotEmpty
+        ? actions
+        : nativeActions
+              .map((action) => nativeActionFallbackButton(action))
+              .toList();
     final resolvedLeading =
         leading ??
         (automaticallyImplyLeading && canPop ? const BackButton() : null);
@@ -76,7 +88,7 @@ class LiquidGlassAppBar extends StatelessWidget implements PreferredSizeWidget {
                   child: Padding(
                     padding: EdgeInsetsDirectional.only(
                       start: resolvedLeading == null ? 0 : 52,
-                      end: actions.isEmpty ? 0 : 52,
+                      end: resolvedActions.isEmpty ? 0 : 52,
                     ),
                     child: DefaultTextStyle.merge(
                       style: TextStyle(
@@ -97,7 +109,10 @@ class LiquidGlassAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
               Align(
                 alignment: AlignmentDirectional.centerEnd,
-                child: Row(mainAxisSize: MainAxisSize.min, children: actions),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: resolvedActions,
+                ),
               ),
             ],
           ),
@@ -117,5 +132,34 @@ class LiquidGlassAppBar extends StatelessWidget implements PreferredSizeWidget {
         center == null &&
         actions.isEmpty &&
         leading == null;
+  }
+
+  Widget nativeActionFallbackButton(LiquidGlassAppBarAction action) {
+    final menuActions = action.menuActions;
+    if (menuActions.isNotEmpty) {
+      return PopupMenuButton<String>(
+        tooltip: action.title,
+        enabled: action.enabled,
+        onSelected: onNativeActionSelected,
+        itemBuilder: (context) {
+          return menuActions.map((item) {
+            return PopupMenuItem<String>(
+              value: item.value,
+              enabled: item.enabled,
+              child: Text(item.title),
+            );
+          }).toList();
+        },
+        icon: const Icon(Icons.more_horiz_rounded),
+      );
+    }
+
+    return IconButton(
+      tooltip: action.title,
+      onPressed: action.enabled
+          ? () => onNativeActionSelected?.call(action.value)
+          : null,
+      icon: const Icon(Icons.more_horiz_rounded),
+    );
   }
 }

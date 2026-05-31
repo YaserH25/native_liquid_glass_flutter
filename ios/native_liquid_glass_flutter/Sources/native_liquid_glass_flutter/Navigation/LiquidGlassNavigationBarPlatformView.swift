@@ -4,6 +4,7 @@ import UIKit
 struct LiquidGlassNavigationBarConfiguration {
   let title: String
   let canGoBack: Bool
+  let actions: [LiquidGlassNavigationBarActionConfiguration]
   let foregroundColor: UIColor
   let backgroundColor: UIColor
   let isRtl: Bool
@@ -18,6 +19,8 @@ struct LiquidGlassNavigationBarConfiguration {
 
     self.title = map["title"] as? String ?? ""
     self.canGoBack = Self.bool(from: map["canGoBack"]) ?? false
+    self.actions = Self.actionMaps(from: map["actions"])
+      .map(LiquidGlassNavigationBarActionConfiguration.init(arguments:))
     self.foregroundColor = LiquidGlassSurfaceConfiguration.color(
       from: map["foregroundColor"] as? NSNumber
     )
@@ -37,6 +40,43 @@ struct LiquidGlassNavigationBarConfiguration {
       return number.boolValue
     }
     return nil
+  }
+
+  private static func actionMaps(from value: Any?) -> [[String: Any]] {
+    return value as? [[String: Any]] ?? []
+  }
+}
+
+struct LiquidGlassNavigationBarActionConfiguration {
+  let title: String
+  let value: String
+  let symbol: String?
+  let role: String?
+  let enabled: Bool
+  let menuActions: [LiquidGlassMenuActionConfiguration]
+
+  init(arguments: [String: Any]) {
+    self.title = arguments["title"] as? String ?? ""
+    self.value = arguments["value"] as? String ?? title
+    self.symbol = arguments["symbol"] as? String
+    self.role = arguments["role"] as? String
+    self.enabled = Self.bool(from: arguments["enabled"]) ?? true
+    self.menuActions = Self.actionMaps(from: arguments["actions"])
+      .map(LiquidGlassMenuActionConfiguration.init(arguments:))
+  }
+
+  private static func bool(from value: Any?) -> Bool? {
+    if let bool = value as? Bool {
+      return bool
+    }
+    if let number = value as? NSNumber {
+      return number.boolValue
+    }
+    return nil
+  }
+
+  private static func actionMaps(from value: Any?) -> [[String: Any]] {
+    return value as? [[String: Any]] ?? []
   }
 }
 
@@ -80,6 +120,7 @@ final class LiquidGlassNavigationBarPlatformView:
   private let navigationBar: UINavigationBar
   private let channel: FlutterMethodChannel
   private let backCoordinator = LiquidGlassNavigationBarBackCoordinator()
+  private var actionValuesByTag: [Int: String] = [:]
 
   init(
     frame: CGRect,
@@ -163,6 +204,7 @@ final class LiquidGlassNavigationBarPlatformView:
     }
 
     let currentItem = UINavigationItem(title: configuration.title)
+    currentItem.rightBarButtonItems = barButtonItems(for: configuration.actions)
     backCoordinator.performProgrammaticUpdate {
       if configuration.canGoBack {
         let previousItem = UINavigationItem(title: "")
@@ -185,6 +227,89 @@ final class LiquidGlassNavigationBarPlatformView:
         navigationBar.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
       ])
     }
+  }
+
+  private func barButtonItems(
+    for actions: [LiquidGlassNavigationBarActionConfiguration]
+  ) -> [UIBarButtonItem] {
+    actionValuesByTag.removeAll(keepingCapacity: true)
+
+    return actions.enumerated().map { index, action in
+      let item = barButtonItem(for: action, tag: index)
+      item.isEnabled = action.enabled
+      return item
+    }
+  }
+
+  private func barButtonItem(
+    for action: LiquidGlassNavigationBarActionConfiguration,
+    tag: Int
+  ) -> UIBarButtonItem {
+    let image = Self.image(systemName: action.symbol)
+
+    if #available(iOS 14.0, *), !action.menuActions.isEmpty {
+      let children = action.menuActions.map { menuAction in
+        uiMenuAction(menuAction)
+      }
+      return UIBarButtonItem(
+        title: image == nil ? action.title : nil,
+        image: image,
+        primaryAction: nil,
+        menu: UIMenu(title: action.title, children: children)
+      )
+    }
+
+    actionValuesByTag[tag] = action.value
+    let item: UIBarButtonItem
+    if let image {
+      item = UIBarButtonItem(
+        image: image,
+        style: .plain,
+        target: self,
+        action: #selector(navigationActionTapped(_:))
+      )
+    } else {
+      item = UIBarButtonItem(
+        title: action.title,
+        style: .plain,
+        target: self,
+        action: #selector(navigationActionTapped(_:))
+      )
+    }
+    item.tag = tag
+    item.accessibilityLabel = action.title
+    return item
+  }
+
+  @available(iOS 14.0, *)
+  private func uiMenuAction(
+    _ action: LiquidGlassMenuActionConfiguration
+  ) -> UIAction {
+    var attributes: UIMenuElement.Attributes = []
+    if action.role == "destructive" {
+      attributes.insert(.destructive)
+    }
+    if !action.enabled {
+      attributes.insert(.disabled)
+    }
+
+    return UIAction(
+      title: action.title,
+      image: Self.image(systemName: action.symbol),
+      identifier: UIAction.Identifier(action.value),
+      discoverabilityTitle: nil,
+      attributes: attributes,
+      state: .off
+    ) { [weak self] _ in
+      self?.channel.invokeMethod("onActionSelected", arguments: action.value)
+    }
+  }
+
+  @objc private func navigationActionTapped(_ sender: UIBarButtonItem) {
+    guard let value = actionValuesByTag[sender.tag] else {
+      return
+    }
+    channel.invokeMethod("onActionSelected", arguments: value)
   }
 
   private func appearance(
@@ -234,5 +359,12 @@ final class LiquidGlassNavigationBarPlatformView:
       return false
     }
     return true
+  }
+
+  private static func image(systemName: String?) -> UIImage? {
+    guard let systemName, !systemName.isEmpty else {
+      return nil
+    }
+    return UIImage(systemName: systemName)?.withRenderingMode(.alwaysTemplate)
   }
 }

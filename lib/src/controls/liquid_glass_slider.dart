@@ -21,6 +21,9 @@ class LiquidGlassSlider extends StatefulWidget {
     this.activeColor,
     this.inactiveColor,
     this.enabled = true,
+    this.minimumNativeSymbol,
+    this.maximumNativeSymbol,
+    this.isContinuous = true,
     this.useNativeOnIOS = true,
     this.nativePolicy = LiquidGlassNativePolicy.automatic,
   });
@@ -35,6 +38,9 @@ class LiquidGlassSlider extends StatefulWidget {
   final Color? activeColor;
   final Color? inactiveColor;
   final bool enabled;
+  final String? minimumNativeSymbol;
+  final String? maximumNativeSymbol;
+  final bool isContinuous;
   final bool useNativeOnIOS;
   final LiquidGlassNativePolicy nativePolicy;
 
@@ -49,6 +55,7 @@ class LiquidGlassSliderState extends State<LiquidGlassSlider> {
             '${LiquidGlassBridgeChannels.sliderChannelPrefix}_$viewId',
       );
   double? lastNativeValue;
+  double? fallbackDragValue;
 
   @override
   void didChangeDependencies() {
@@ -71,6 +78,9 @@ class LiquidGlassSliderState extends State<LiquidGlassSlider> {
           oldWidget.enabled != widget.enabled ||
           oldWidget.activeColor != widget.activeColor ||
           oldWidget.inactiveColor != widget.inactiveColor ||
+          oldWidget.minimumNativeSymbol != widget.minimumNativeSymbol ||
+          oldWidget.maximumNativeSymbol != widget.maximumNativeSymbol ||
+          oldWidget.isContinuous != widget.isContinuous ||
           oldWidget.nativePolicy != widget.nativePolicy;
 
       if (externalValueChange || configurationChange) {
@@ -78,6 +88,9 @@ class LiquidGlassSliderState extends State<LiquidGlassSlider> {
       }
     } else {
       clearChannel();
+      if (oldWidget.value != widget.value) {
+        fallbackDragValue = null;
+      }
     }
   }
 
@@ -102,15 +115,19 @@ class LiquidGlassSliderState extends State<LiquidGlassSlider> {
       );
     }
 
+    final fallbackValue = (fallbackDragValue ?? widget.value)
+        .clamp(widget.min, widget.max)
+        .toDouble();
+
     return Slider(
-      value: widget.value.clamp(widget.min, widget.max).toDouble(),
+      value: fallbackValue,
       min: widget.min,
       max: widget.max,
       divisions: divisions,
       activeColor: widget.activeColor,
       inactiveColor: widget.inactiveColor,
-      onChanged: widget.enabled ? widget.onChanged : null,
-      onChangeEnd: widget.enabled ? widget.onChangeEnd : null,
+      onChanged: widget.enabled ? handleFallbackChanged : null,
+      onChangeEnd: widget.enabled ? handleFallbackChangeEnd : null,
     );
   }
 
@@ -140,6 +157,9 @@ class LiquidGlassSliderState extends State<LiquidGlassSlider> {
       LiquidGlassBridgeKeys.max: widget.max,
       LiquidGlassBridgeKeys.step: widget.step,
       LiquidGlassBridgeKeys.enabled: widget.enabled,
+      LiquidGlassBridgeKeys.minimumSymbol: widget.minimumNativeSymbol,
+      LiquidGlassBridgeKeys.maximumSymbol: widget.maximumNativeSymbol,
+      LiquidGlassBridgeKeys.isContinuous: widget.isContinuous,
       LiquidGlassBridgeKeys.activeColor:
           (widget.activeColor ?? theme.accentColor).toARGB32(),
       LiquidGlassBridgeKeys.inactiveColor: widget.inactiveColor?.toARGB32(),
@@ -187,5 +207,22 @@ class LiquidGlassSliderState extends State<LiquidGlassSlider> {
     }
 
     return (nativeValue - value).abs() < 0.000001;
+  }
+
+  void handleFallbackChanged(double value) {
+    if (widget.isContinuous) {
+      widget.onChanged(value);
+      return;
+    }
+
+    setState(() => fallbackDragValue = value);
+  }
+
+  void handleFallbackChangeEnd(double value) {
+    if (!widget.isContinuous) {
+      setState(() => fallbackDragValue = null);
+      widget.onChanged(value);
+    }
+    widget.onChangeEnd?.call(value);
   }
 }

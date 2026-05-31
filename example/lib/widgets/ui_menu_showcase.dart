@@ -16,16 +16,58 @@ class UiMenuShowcaseState extends State<UiMenuShowcase> {
   String selectedValue = 'comfortable';
   String lastPullDownCommand = 'None';
   String lastIconCommand = 'None';
+  String lastGroupedCommand = 'None';
   double sliderValue = 0.56;
 
   static const List<LiquidGlassAction> densityOptions = <LiquidGlassAction>[
-    LiquidGlassAction(title: 'Compact', value: 'compact'),
+    LiquidGlassAction(
+      title: 'Compact',
+      value: 'compact',
+      nativeSymbol: 'rectangle.compress.vertical',
+      group: 'Density',
+    ),
     LiquidGlassAction(
       title: 'Comfortable',
       value: 'comfortable',
       role: LiquidGlassActionRole.preferred,
+      nativeSymbol: 'rectangle.split.3x1',
+      group: 'Density',
     ),
-    LiquidGlassAction(title: 'Spacious', value: 'spacious'),
+    LiquidGlassAction(
+      title: 'Spacious',
+      value: 'spacious',
+      nativeSymbol: 'rectangle.expand.vertical',
+      group: 'Density',
+    ),
+  ];
+
+  static const List<LiquidGlassAction> groupedActions = <LiquidGlassAction>[
+    LiquidGlassAction(
+      title: 'Pin',
+      value: 'pin',
+      nativeSymbol: 'pin',
+      group: 'Quick actions',
+    ),
+    LiquidGlassAction(
+      title: 'Notify',
+      value: 'notify',
+      nativeSymbol: 'bell',
+      group: 'Quick actions',
+    ),
+    LiquidGlassAction(
+      title: 'Export PDF',
+      value: 'export_pdf',
+      nativeSymbol: 'doc.richtext',
+      enabled: false,
+      group: 'Export',
+    ),
+    LiquidGlassAction(
+      title: 'Delete',
+      value: 'delete',
+      role: LiquidGlassActionRole.destructive,
+      nativeSymbol: 'trash',
+      group: 'Danger',
+    ),
   ];
 
   @override
@@ -60,11 +102,16 @@ class UiMenuShowcaseState extends State<UiMenuShowcase> {
               onSelected: selectPullDownCommand,
               actions: const <LiquidGlassAction>[
                 LiquidGlassAction(title: 'Duplicate', value: 'duplicate'),
-                LiquidGlassAction(title: 'Archive', value: 'archive'),
+                LiquidGlassAction(
+                  title: 'Archive',
+                  value: 'archive',
+                  nativeSymbol: 'archivebox',
+                ),
                 LiquidGlassAction(
                   title: 'Delete',
                   value: 'delete',
                   role: LiquidGlassActionRole.destructive,
+                  nativeSymbol: 'trash',
                 ),
               ],
             ),
@@ -87,14 +134,34 @@ class UiMenuShowcaseState extends State<UiMenuShowcase> {
                 onSelected: selectIconCommand,
                 actions: const <LiquidGlassAction>[
                   LiquidGlassAction(title: 'Duplicate', value: 'duplicate'),
-                  LiquidGlassAction(title: 'Archive', value: 'archive'),
+                  LiquidGlassAction(
+                    title: 'Archive',
+                    value: 'archive',
+                    nativeSymbol: 'archivebox',
+                  ),
                   LiquidGlassAction(
                     title: 'Delete',
                     value: 'delete',
                     role: LiquidGlassActionRole.destructive,
+                    nativeSymbol: 'trash',
                   ),
                 ],
               ),
+            ),
+          ],
+        ),
+        ExampleSection(
+          title: 'Grouped command menu',
+          subtitle: 'Icons, disabled commands, and destructive roles.',
+          children: <Widget>[
+            Text('Last grouped action: $lastGroupedCommand'),
+            const SizedBox(height: 10),
+            LiquidGlassPullDownButton(
+              title: 'Document',
+              width: 150,
+              nativePolicy: LiquidGlassNativePolicy.native,
+              onSelected: selectGroupedCommand,
+              actions: groupedActions,
             ),
           ],
         ),
@@ -141,12 +208,19 @@ class UiMenuShowcaseState extends State<UiMenuShowcase> {
     widget.onSelectionChanged?.call('Action menu: $title');
   }
 
+  void selectGroupedCommand(String value) {
+    final title = titleForGroupedCommand(value);
+    setState(() => lastGroupedCommand = title);
+    widget.onSelectionChanged?.call('Grouped menu: $title');
+  }
+
   Future<void> selectSliderCommand(String value) async {
     switch (value) {
       case 'adjust':
         await showLiquidGlassSheet<void>(
           context: context,
           title: const Text('Adjust intensity'),
+          detent: LiquidGlassSheetDetent.medium,
           builder: (context) {
             return PullDownSliderSheetContent(
               initialValue: sliderValue,
@@ -189,6 +263,15 @@ class UiMenuShowcaseState extends State<UiMenuShowcase> {
     }
     return value;
   }
+
+  String titleForGroupedCommand(String value) {
+    for (final action in groupedActions) {
+      if (action.value == value) {
+        return action.title;
+      }
+    }
+    return value;
+  }
 }
 
 class PullDownSliderSheetContent extends StatefulWidget {
@@ -222,6 +305,8 @@ class PullDownSliderSheetContentState
         LiquidGlassSlider(
           value: value,
           nativePolicy: LiquidGlassNativePolicy.native,
+          minimumNativeSymbol: 'sun.min',
+          maximumNativeSymbol: 'sun.max',
           onChanged: updateValue,
           onChangeEnd: updateValue,
         ),

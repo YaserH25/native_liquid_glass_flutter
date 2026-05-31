@@ -55,6 +55,26 @@ struct LiquidGlassMenuButtonConfiguration {
   }
 }
 
+struct LiquidGlassMenuActionConfiguration {
+  let title: String
+  let value: String
+  let role: String?
+  let symbol: String?
+  let enabled: Bool
+  let group: String?
+
+  init(arguments: [String: Any]) {
+    self.title = arguments["title"] as? String ?? ""
+    self.value = arguments["value"] as? String ?? title
+    self.role = arguments["role"] as? String
+    self.symbol = arguments["symbol"] as? String
+    self.enabled = LiquidGlassMenuButtonConfiguration.bool(
+      from: arguments["enabled"]
+    ) ?? true
+    self.group = arguments["group"] as? String
+  }
+}
+
 final class LiquidGlassMenuButtonPlatformView: NSObject, FlutterPlatformView {
   private let containerView: UIView
   private let button: UIButton
@@ -211,27 +231,12 @@ final class LiquidGlassMenuButtonPlatformView: NSObject, FlutterPlatformView {
     let selectedValue = map["value"] as? String
     let actions = LiquidGlassMenuButtonConfiguration.actionMaps(
       from: map["actions"]
+    ).map(LiquidGlassMenuActionConfiguration.init(arguments:))
+    let children = menuChildren(
+      actions: actions,
+      selectedValue: selectedValue,
+      tracksSelection: configuration.tracksSelection
     )
-    let children = actions.map { actionMap in
-      let actionTitle = actionMap["title"] as? String ?? ""
-      let actionValue = actionMap["value"] as? String ?? actionTitle
-      let role = actionMap["role"] as? String
-      var attributes: UIMenuElement.Attributes = []
-      if role == "destructive" {
-        attributes.insert(.destructive)
-      }
-
-      return UIAction(
-        title: actionTitle,
-        image: nil,
-        identifier: UIAction.Identifier(actionValue),
-        discoverabilityTitle: nil,
-        attributes: attributes,
-        state: configuration.tracksSelection && actionValue == selectedValue ? .on : .off
-      ) { [weak self] _ in
-        self?.select(value: actionValue)
-      }
-    }
 
     button.menu = UIMenu(title: title, children: children)
     button.showsMenuAsPrimaryAction = true
@@ -267,5 +272,91 @@ final class LiquidGlassMenuButtonPlatformView: NSObject, FlutterPlatformView {
       configure(arguments: currentConfiguration)
     }
     channel.invokeMethod("onChanged", arguments: value)
+  }
+
+  @available(iOS 14.0, *)
+  private func menuChildren(
+    actions: [LiquidGlassMenuActionConfiguration],
+    selectedValue: String?,
+    tracksSelection: Bool
+  ) -> [UIMenuElement] {
+    var children: [UIMenuElement] = []
+    var groupedActions: [LiquidGlassMenuActionConfiguration] = []
+    var currentGroup: String?
+
+    func flushGroup() {
+      guard !groupedActions.isEmpty else {
+        return
+      }
+
+      if let currentGroup, !currentGroup.isEmpty {
+        let groupChildren = groupedActions.map { action in
+          menuAction(
+            action,
+            selectedValue: selectedValue,
+            tracksSelection: tracksSelection
+          )
+        }
+        children.append(
+          UIMenu(title: currentGroup, options: .displayInline, children: groupChildren)
+        )
+      } else {
+        children.append(
+          contentsOf: groupedActions.map { action in
+            menuAction(
+              action,
+              selectedValue: selectedValue,
+              tracksSelection: tracksSelection
+            )
+          }
+        )
+      }
+
+      groupedActions.removeAll(keepingCapacity: true)
+    }
+
+    for action in actions {
+      if action.group != currentGroup {
+        flushGroup()
+        currentGroup = action.group
+      }
+      groupedActions.append(action)
+    }
+    flushGroup()
+
+    return children
+  }
+
+  @available(iOS 14.0, *)
+  private func menuAction(
+    _ action: LiquidGlassMenuActionConfiguration,
+    selectedValue: String?,
+    tracksSelection: Bool
+  ) -> UIAction {
+    var attributes: UIMenuElement.Attributes = []
+    if action.role == "destructive" {
+      attributes.insert(.destructive)
+    }
+    if !action.enabled {
+      attributes.insert(.disabled)
+    }
+
+    return UIAction(
+      title: action.title,
+      image: Self.image(systemName: action.symbol),
+      identifier: UIAction.Identifier(action.value),
+      discoverabilityTitle: nil,
+      attributes: attributes,
+      state: tracksSelection && action.value == selectedValue ? .on : .off
+    ) { [weak self] _ in
+      self?.select(value: action.value)
+    }
+  }
+
+  private static func image(systemName: String?) -> UIImage? {
+    guard let systemName, !systemName.isEmpty else {
+      return nil
+    }
+    return UIImage(systemName: systemName)
   }
 }

@@ -155,7 +155,9 @@ class LiquidGlassTabBarState extends State<LiquidGlassTabBar> {
               child: LiquidGlassTabButton(
                 item: widget.items[index],
                 selected: widget.selectedIndex == index,
-                onTap: () => widget.onSelected(index),
+                onTap: widget.items[index].enabled
+                    ? () => widget.onSelected(index)
+                    : null,
                 iconTextGap: widget.iconTextGap,
                 padding: widget.itemPadding,
               ),
@@ -270,7 +272,7 @@ class LiquidGlassTabButton extends StatelessWidget {
 
   final LiquidGlassTabItem item;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final double iconTextGap;
   final EdgeInsetsGeometry padding;
 
@@ -280,11 +282,13 @@ class LiquidGlassTabButton extends StatelessWidget {
     final color = selected
         ? theme.selectedForegroundColor
         : theme.foregroundColor;
+    final effectiveColor = item.enabled ? color : color.withValues(alpha: 0.42);
 
     return Semantics(
       selected: selected,
       label: item.semanticLabel,
       button: true,
+      enabled: item.enabled,
       child: InkWell(
         borderRadius: BorderRadius.circular(999),
         onTap: onTap,
@@ -299,10 +303,10 @@ class LiquidGlassTabButton extends StatelessWidget {
             shape: const StadiumBorder(),
           ),
           child: IconTheme.merge(
-            data: IconThemeData(color: color, size: 27),
+            data: IconThemeData(color: effectiveColor, size: 27),
             child: DefaultTextStyle.merge(
               style: TextStyle(
-                color: color,
+                color: effectiveColor,
                 fontSize: 12,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
                 height: 1.05,
@@ -312,7 +316,12 @@ class LiquidGlassTabButton extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  selected ? item.selectedIcon ?? item.icon : item.icon,
+                  LiquidGlassTabIconWithBadge(
+                    badge: item.badge,
+                    child: selected
+                        ? item.selectedIcon ?? item.icon
+                        : item.icon,
+                  ),
                   SizedBox(height: iconTextGap),
                   item.label,
                 ],
@@ -321,6 +330,55 @@ class LiquidGlassTabButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class LiquidGlassTabIconWithBadge extends StatelessWidget {
+  const LiquidGlassTabIconWithBadge({
+    super.key,
+    required this.child,
+    this.badge,
+  });
+
+  final Widget child;
+  final String? badge;
+
+  @override
+  Widget build(BuildContext context) {
+    final badge = this.badge;
+    if (badge == null || badge.isEmpty) {
+      return child;
+    }
+
+    final theme = LiquidGlassTheme.of(context);
+    return Stack(
+      clipBehavior: Clip.none,
+      children: <Widget>[
+        child,
+        PositionedDirectional(
+          top: -7,
+          end: -12,
+          child: Container(
+            constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: theme.accentColor,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              badge,
+              style: TextStyle(
+                color: theme.selectedForegroundColor,
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                height: 1,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

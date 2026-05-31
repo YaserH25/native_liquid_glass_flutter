@@ -11,6 +11,8 @@ class LiquidGlassTabItem {
     this.semanticLabel,
     this.nativeSymbol,
     this.nativeSelectedSymbol,
+    this.badge,
+    this.enabled = true,
   });
 
   final Widget icon;
@@ -19,12 +21,14 @@ class LiquidGlassTabItem {
   final String? semanticLabel;
   final String? nativeSymbol;
   final String? nativeSelectedSymbol;
+  final String? badge;
+  final bool enabled;
 
   bool get isNativeRepresentable {
     return nativeSymbol?.isNotEmpty == true && platformLabel.trim().isNotEmpty;
   }
 
-  Map<String, Object> toPlatformMap() {
+  Map<String, Object?> toPlatformMap() {
     assert(
       isNativeRepresentable,
       'LiquidGlassTabItem requires nativeSymbol and a text or semantic label '
@@ -32,11 +36,17 @@ class LiquidGlassTabItem {
     );
     final symbol = nativeSymbol ?? 'circle';
 
-    return <String, Object>{
+    final map = <String, Object?>{
       LiquidGlassBridgeKeys.label: platformLabel,
       LiquidGlassBridgeKeys.symbol: symbol,
       LiquidGlassBridgeKeys.selectedSymbol: nativeSelectedSymbol ?? symbol,
+      LiquidGlassBridgeKeys.enabled: enabled,
     };
+    final badge = this.badge;
+    if (badge != null) {
+      map[LiquidGlassBridgeKeys.badge] = badge;
+    }
+    return map;
   }
 
   String get platformLabel {

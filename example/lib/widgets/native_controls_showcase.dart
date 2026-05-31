@@ -14,6 +14,7 @@ class NativeControlsShowcase extends StatefulWidget {
 
 class NativeControlsShowcaseState extends State<NativeControlsShowcase> {
   double sliderValue = 0.54;
+  double endpointSliderValue = 0.72;
   bool switchValue = true;
   int segmentIndex = 1;
   double stepperValue = 3;
@@ -62,6 +63,8 @@ class NativeControlsShowcaseState extends State<NativeControlsShowcase> {
             LiquidGlassSlider(
               value: sliderValue,
               nativePolicy: LiquidGlassNativePolicy.native,
+              minimumNativeSymbol: 'speaker.wave.1',
+              maximumNativeSymbol: 'speaker.wave.3',
               onChanged: (value) => setState(() => sliderValue = value),
               onChangeEnd: (value) => setState(() => sliderValue = value),
             ),
@@ -69,6 +72,22 @@ class NativeControlsShowcaseState extends State<NativeControlsShowcase> {
               prominent: true,
               onPressed: showLiveSliderSheet,
               child: const Text('Open slider sheet'),
+            ),
+          ],
+        ),
+        ExampleSection(
+          title: 'Slider endpoints',
+          children: <Widget>[
+            Text('Final value: ${(endpointSliderValue * 100).round()}%'),
+            LiquidGlassSlider(
+              value: endpointSliderValue,
+              nativePolicy: LiquidGlassNativePolicy.native,
+              minimumNativeSymbol: 'textformat.size.smaller',
+              maximumNativeSymbol: 'textformat.size.larger',
+              isContinuous: false,
+              onChanged: (value) {
+                setState(() => endpointSliderValue = value);
+              },
             ),
           ],
         ),
@@ -129,6 +148,7 @@ class NativeControlsShowcaseState extends State<NativeControlsShowcase> {
     await showLiquidGlassSheet<void>(
       context: context,
       title: const Text('Live text scale'),
+      detent: LiquidGlassSheetDetent.medium,
       builder: (context) {
         return SliderSheetContent(initialValue: sliderValue);
       },

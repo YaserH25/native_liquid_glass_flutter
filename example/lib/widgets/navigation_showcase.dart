@@ -13,6 +13,7 @@ class NavigationShowcase extends StatefulWidget {
 class NavigationShowcaseState extends State<NavigationShowcase> {
   int selectedIndex = 0;
   int directionIndex = 0;
+  String lastAppBarAction = 'None';
 
   static const List<String> tabLabels = <String>['Today', 'Saved', 'Settings'];
 
@@ -28,6 +29,7 @@ class NavigationShowcaseState extends State<NavigationShowcase> {
           title: 'Native app bar',
           children: <Widget>[
             Text('Direction: ${directionIndex == 0 ? 'LTR' : 'RTL'}'),
+            Text('Last app bar action: $lastAppBarAction'),
             const SizedBox(height: 10),
             LiquidGlassSegmentedControl(
               selectedIndex: directionIndex,
@@ -43,9 +45,35 @@ class NavigationShowcaseState extends State<NavigationShowcase> {
               child: MediaQuery.removePadding(
                 context: context,
                 removeTop: true,
-                child: const LiquidGlassAppBar(
-                  title: Text('App bar title'),
+                child: LiquidGlassAppBar(
+                  title: const Text('App bar title'),
                   automaticallyImplyLeading: false,
+                  nativeActions: const <LiquidGlassAppBarAction>[
+                    LiquidGlassAppBarAction(
+                      title: 'Bookmark',
+                      value: 'bookmark',
+                      nativeSymbol: 'bookmark',
+                    ),
+                    LiquidGlassAppBarAction(
+                      title: 'More',
+                      value: 'more',
+                      nativeSymbol: 'ellipsis.circle',
+                      menuActions: <LiquidGlassAction>[
+                        LiquidGlassAction(
+                          title: 'Share',
+                          value: 'share',
+                          nativeSymbol: 'square.and.arrow.up',
+                        ),
+                        LiquidGlassAction(
+                          title: 'Delete',
+                          value: 'delete',
+                          role: LiquidGlassActionRole.destructive,
+                          nativeSymbol: 'trash',
+                        ),
+                      ],
+                    ),
+                  ],
+                  onNativeActionSelected: updateAppBarAction,
                 ),
               ),
             ),
@@ -68,6 +96,7 @@ class NavigationShowcaseState extends State<NavigationShowcase> {
             title: 'Native tab bar',
             children: <Widget>[
               Text('Selection: ${tabLabels[selectedIndex]}'),
+              const Text('Saved badge: 2'),
               const SizedBox(height: 10),
               LiquidGlassTabBar(
                 selectedIndex: selectedIndex,
@@ -86,6 +115,7 @@ class NavigationShowcaseState extends State<NavigationShowcase> {
                     label: Text('Saved'),
                     nativeSymbol: 'bookmark',
                     nativeSelectedSymbol: 'bookmark.fill',
+                    badge: '2',
                   ),
                   LiquidGlassTabItem(
                     icon: Icon(Icons.settings_outlined),
@@ -93,6 +123,7 @@ class NavigationShowcaseState extends State<NavigationShowcase> {
                     label: Text('Settings'),
                     nativeSymbol: 'gearshape',
                     nativeSelectedSymbol: 'gearshape.fill',
+                    enabled: false,
                   ),
                 ],
               ),
@@ -123,6 +154,17 @@ class NavigationShowcaseState extends State<NavigationShowcase> {
         },
       ),
     );
+  }
+
+  void updateAppBarAction(String value) {
+    setState(() {
+      lastAppBarAction = switch (value) {
+        'bookmark' => 'Bookmark',
+        'share' => 'Share',
+        'delete' => 'Delete',
+        _ => value,
+      };
+    });
   }
 }
 

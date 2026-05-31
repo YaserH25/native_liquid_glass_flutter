@@ -8,6 +8,7 @@ import '../config/liquid_glass_theme.dart';
 import '../platform/liquid_glass_bridge_keys.dart';
 import '../platform/liquid_glass_native_view_channel.dart';
 import '../platform/liquid_glass_platform.dart';
+import 'liquid_glass_app_bar_action.dart';
 
 final Set<Factory<OneSequenceGestureRecognizer>> _nativeNavigationBarGestures =
     Set<Factory<OneSequenceGestureRecognizer>>.unmodifiable(
@@ -23,6 +24,8 @@ class LiquidGlassNativeAppBar extends StatefulWidget
     required this.title,
     required this.canGoBack,
     this.onBack,
+    this.actions = const <LiquidGlassAppBarAction>[],
+    this.onActionSelected,
     this.configuration,
     this.height,
   });
@@ -30,6 +33,8 @@ class LiquidGlassNativeAppBar extends StatefulWidget
   final String title;
   final bool canGoBack;
   final VoidCallback? onBack;
+  final List<LiquidGlassAppBarAction> actions;
+  final ValueChanged<String>? onActionSelected;
   final LiquidGlassConfiguration? configuration;
   final double? height;
 
@@ -91,11 +96,19 @@ class LiquidGlassNativeAppBarState extends State<LiquidGlassNativeAppBar> {
   }
 
   Future<void> handleMethodCall(MethodCall call) async {
-    if (!mounted || call.method != LiquidGlassBridgeMethods.onBack) {
+    if (!mounted) {
       return;
     }
 
-    widget.onBack?.call();
+    switch (call.method) {
+      case LiquidGlassBridgeMethods.onBack:
+        widget.onBack?.call();
+      case LiquidGlassBridgeMethods.onActionSelected:
+        final value = call.arguments;
+        if (value is String) {
+          widget.onActionSelected?.call(value);
+        }
+    }
   }
 
   void syncConfiguration({bool force = false}) {
@@ -118,6 +131,9 @@ class LiquidGlassNativeAppBarState extends State<LiquidGlassNativeAppBar> {
     return <String, Object?>{
       LiquidGlassBridgeKeys.title: widget.title,
       LiquidGlassBridgeKeys.canGoBack: widget.canGoBack,
+      LiquidGlassBridgeKeys.actions: widget.actions
+          .map((action) => action.toPlatformMap())
+          .toList(),
       LiquidGlassBridgeKeys.foregroundColor: theme.foregroundColor.toARGB32(),
       LiquidGlassBridgeKeys.backgroundColor:
           (surfaceConfiguration.tintColor ?? materialTheme.colorScheme.surface)

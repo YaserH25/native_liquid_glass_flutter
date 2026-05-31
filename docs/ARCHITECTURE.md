@@ -115,11 +115,18 @@ Before release:
 ## Manual Simulator Smoke Checklist
 
 - Native slider drags with cursor/finger and emits live values.
+- Native slider endpoint symbols render and non-continuous mode reports on
+  release.
 - Native switch toggles once per tap.
 - Native segmented control changes once per segment tap.
 - Native stepper clamps min/max.
 - Native tab bar uses OS icon/label spacing and stays bottom-pinned.
+- Native tab bar badges and disabled items match `UITabBarItem` behavior.
 - Native menu opens as a `UIMenu` and updates Flutter state.
+- Native menu action icons, disabled state, groups, and destructive roles match
+  the typed Dart action metadata.
+- Native app bar trailing actions and action menus call back to Flutter without
+  owning navigation state.
 - Pull-down button opens command actions without changing its title.
 - Icon action menu opens command actions from a compact button.
 - Alert/action sheet/date/time/share overlays return expected values.

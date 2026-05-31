@@ -14,6 +14,7 @@ void main() {
     await tester.pumpWidget(const ExampleApp());
 
     expect(find.text('Native slider'), findsOneWidget);
+    expect(find.text('Slider endpoints'), findsOneWidget);
     expect(find.text('Open slider sheet'), findsOneWidget);
     expect(find.text('Controls'), findsWidgets);
   });
@@ -27,7 +28,18 @@ void main() {
 
       expect(find.byType(UiKitView), findsWidgets);
       expect(find.text('Native slider'), findsOneWidget);
+      expect(find.text('Slider endpoints'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('Native switch'),
+        180,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(find.text('Native switch'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('Native segmented control'),
+        180,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(find.text('Native segmented control'), findsOneWidget);
 
       await tester.drag(find.byType(ListView), const Offset(0, -500));
@@ -53,6 +65,7 @@ void main() {
       'Native UIMenu',
       'Pull-down button',
       'Action menu button',
+      'Grouped command menu',
       'Pull-down slider',
       'Option picker',
       'Date picker',
@@ -85,6 +98,12 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('Last icon action: None'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Grouped command menu'),
+      180,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Last grouped action: None'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Pull-down slider'),
       180,
@@ -191,6 +210,8 @@ void main() {
       final params = navigationBar.creationParams as Map<Object?, Object?>;
       expect(params['isRtl'], isTrue);
       expect(find.text('Direction: RTL'), findsOneWidget);
+      expect(find.text('Last app bar action: None'), findsOneWidget);
+      expect(find.text('Saved badge: 2'), findsOneWidget);
     } finally {
       debugDefaultTargetPlatformOverride = null;
     }
@@ -253,6 +274,12 @@ void main() {
       );
       expect(find.text('Action menu button'), findsOneWidget);
       expect(find.text('Last icon action: None'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('Grouped command menu'),
+        180,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Last grouped action: None'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.text('Pull-down slider'),
         180,

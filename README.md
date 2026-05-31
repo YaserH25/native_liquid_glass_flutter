@@ -130,12 +130,20 @@ LiquidGlassSurface(
 ### LiquidGlassAppBar
 
 `LiquidGlassAppBar` keeps leading/back behavior directional by using Flutter's
-native `BackButton`. It supports a centered widget for an app icon or brand mark.
+native `BackButton`. Simple text-title app bars can stay native on iOS while
+exposing trailing `UIBarButtonItem` actions back to Flutter.
 
 ```dart
 LiquidGlassAppBar(
-  center: Image.asset('assets/app_icon.png', width: 36, height: 36),
-  actions: const <Widget>[IconButton(icon: Icon(Icons.search), onPressed: null)],
+  title: const Text('Reader'),
+  nativeActions: const <LiquidGlassAppBarAction>[
+    LiquidGlassAppBarAction(
+      title: 'Bookmark',
+      value: 'bookmark',
+      nativeSymbol: 'bookmark',
+    ),
+  ],
+  onNativeActionSelected: handleAppBarAction,
 )
 ```
 
@@ -161,6 +169,13 @@ LiquidGlassTabBar(
       label: Text('Alerts'),
       nativeSymbol: 'alarm',
       nativeSelectedSymbol: 'alarm.fill',
+      badge: '2',
+    ),
+    LiquidGlassTabItem(
+      icon: Icon(Icons.settings_outlined),
+      label: Text('Settings'),
+      nativeSymbol: 'gearshape',
+      enabled: false,
     ),
   ],
 )
@@ -191,6 +206,9 @@ LiquidGlassSlider(
   max: 1.4,
   step: 0.01,
   nativePolicy: LiquidGlassNativePolicy.native,
+  minimumNativeSymbol: 'textformat.size.smaller',
+  maximumNativeSymbol: 'textformat.size.larger',
+  isContinuous: false,
   onChanged: (value) {
     setState(() => textScale = value);
   },
@@ -219,9 +237,25 @@ LiquidGlassMenuButton(
   value: density,
   onChanged: (value) => setState(() => density = value),
   options: const <LiquidGlassAction>[
-    LiquidGlassAction(title: 'Compact', value: 'compact'),
-    LiquidGlassAction(title: 'Comfortable', value: 'comfortable'),
-    LiquidGlassAction(title: 'Spacious', value: 'spacious'),
+    LiquidGlassAction(
+      title: 'Compact',
+      value: 'compact',
+      nativeSymbol: 'rectangle.compress.vertical',
+      group: 'Density',
+    ),
+    LiquidGlassAction(
+      title: 'Comfortable',
+      value: 'comfortable',
+      nativeSymbol: 'rectangle.split.3x1',
+      role: LiquidGlassActionRole.preferred,
+      group: 'Density',
+    ),
+    LiquidGlassAction(
+      title: 'Spacious',
+      value: 'spacious',
+      nativeSymbol: 'rectangle.expand.vertical',
+      group: 'Density',
+    ),
   ],
 )
 ```
@@ -237,11 +271,16 @@ LiquidGlassPullDownButton(
   onSelected: (value) => handleCommand(value),
   actions: const <LiquidGlassAction>[
     LiquidGlassAction(title: 'Duplicate', value: 'duplicate'),
-    LiquidGlassAction(title: 'Archive', value: 'archive'),
+    LiquidGlassAction(
+      title: 'Archive',
+      value: 'archive',
+      nativeSymbol: 'archivebox',
+    ),
     LiquidGlassAction(
       title: 'Delete',
       value: 'delete',
       role: LiquidGlassActionRole.destructive,
+      nativeSymbol: 'trash',
     ),
   ],
 )
@@ -270,12 +309,14 @@ LiquidGlassPullDownButton(
 ### Sheets
 
 Custom Flutter content uses a Flutter bottom sheet with the package glass
-surface. The sheet automatically follows the keyboard.
+surface. The sheet automatically follows the keyboard and can use content,
+medium, or large detents.
 
 ```dart
 await showLiquidGlassSheet<void>(
   context: context,
   title: const Text('Add item'),
+  detent: LiquidGlassSheetDetent.medium,
   builder: (context) {
     return const TextField(
       decoration: InputDecoration(labelText: 'Name'),

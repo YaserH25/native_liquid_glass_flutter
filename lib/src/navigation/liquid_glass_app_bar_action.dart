@@ -1,26 +1,25 @@
 import 'package:flutter/foundation.dart';
 
+import '../overlays/liquid_glass_action.dart';
 import '../platform/liquid_glass_bridge_keys.dart';
 
-enum LiquidGlassActionRole { normal, preferred, destructive, cancel }
-
 @immutable
-class LiquidGlassAction {
-  const LiquidGlassAction({
+class LiquidGlassAppBarAction {
+  const LiquidGlassAppBarAction({
     required this.title,
     required this.value,
-    this.role = LiquidGlassActionRole.normal,
     this.nativeSymbol,
+    this.role = LiquidGlassActionRole.normal,
     this.enabled = true,
-    this.group,
+    this.menuActions = const <LiquidGlassAction>[],
   });
 
   final String title;
   final String value;
-  final LiquidGlassActionRole role;
   final String? nativeSymbol;
+  final LiquidGlassActionRole role;
   final bool enabled;
-  final String? group;
+  final List<LiquidGlassAction> menuActions;
 
   Map<String, Object?> toPlatformMap() {
     final map = <String, Object?>{
@@ -33,9 +32,10 @@ class LiquidGlassAction {
     if (nativeSymbol != null) {
       map[LiquidGlassBridgeKeys.symbol] = nativeSymbol;
     }
-    final group = this.group;
-    if (group != null) {
-      map[LiquidGlassBridgeKeys.group] = group;
+    if (menuActions.isNotEmpty) {
+      map[LiquidGlassBridgeKeys.actions] = menuActions
+          .map((action) => action.toPlatformMap())
+          .toList();
     }
     return map;
   }

@@ -2,6 +2,7 @@ abstract final class LiquidGlassBridgeKeys {
   static const actions = 'actions';
   static const activeColor = 'activeColor';
   static const backgroundColor = 'backgroundColor';
+  static const badge = 'badge';
   static const blurSigma = 'blurSigma';
   static const cancelTitle = 'cancelTitle';
   static const canGoBack = 'canGoBack';
@@ -10,6 +11,7 @@ abstract final class LiquidGlassBridgeKeys {
   static const cornerStyle = 'cornerStyle';
   static const enabled = 'enabled';
   static const foregroundColor = 'foregroundColor';
+  static const group = 'group';
   static const inactiveColor = 'inactiveColor';
   static const index = 'index';
   static const initialDate = 'initialDate';
@@ -17,15 +19,18 @@ abstract final class LiquidGlassBridgeKeys {
   static const intensity = 'intensity';
   static const interactive = 'interactive';
   static const isDark = 'isDark';
+  static const isContinuous = 'isContinuous';
   static const isRtl = 'isRtl';
   static const items = 'items';
   static const label = 'label';
   static const locale = 'locale';
   static const max = 'max';
   static const maximumDate = 'maximumDate';
+  static const maximumSymbol = 'maximumSymbol';
   static const message = 'message';
   static const min = 'min';
   static const minimumDate = 'minimumDate';
+  static const minimumSymbol = 'minimumSymbol';
   static const minuteInterval = 'minuteInterval';
   static const nativePolicy = 'nativePolicy';
   static const preferNative = 'preferNative';
@@ -49,6 +54,7 @@ abstract final class LiquidGlassBridgeKeys {
 abstract final class LiquidGlassBridgeMethods {
   static const cancelPresentedOverlay = 'cancelPresentedOverlay';
   static const getPlatformVersion = 'getPlatformVersion';
+  static const onActionSelected = 'onActionSelected';
   static const onBack = 'onBack';
   static const onChanged = 'onChanged';
   static const onChangeEnd = 'onChangeEnd';

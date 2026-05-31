@@ -1,6 +1,28 @@
 import Flutter
 import UIKit
 
+struct LiquidGlassSliderConfiguration {
+  let isContinuous: Bool
+  let minimumSymbol: String?
+  let maximumSymbol: String?
+
+  init(arguments: [String: Any]) {
+    self.isContinuous = Self.bool(from: arguments["isContinuous"]) ?? true
+    self.minimumSymbol = arguments["minimumSymbol"] as? String
+    self.maximumSymbol = arguments["maximumSymbol"] as? String
+  }
+
+  private static func bool(from value: Any?) -> Bool? {
+    if let bool = value as? Bool {
+      return bool
+    }
+    if let number = value as? NSNumber {
+      return number.boolValue
+    }
+    return nil
+  }
+}
+
 final class LiquidGlassSliderPlatformView: NSObject, FlutterPlatformView {
   private let slider = UISlider()
   private let channel: FlutterMethodChannel
@@ -17,7 +39,6 @@ final class LiquidGlassSliderPlatformView: NSObject, FlutterPlatformView {
       binaryMessenger: messenger
     )
     super.init()
-    slider.isContinuous = true
     configure(arguments: arguments, animated: false)
     slider.addTarget(self, action: #selector(valueChanged), for: .valueChanged)
     slider.addTarget(
@@ -54,10 +75,14 @@ final class LiquidGlassSliderPlatformView: NSObject, FlutterPlatformView {
 
   private func configure(arguments: Any?, animated: Bool) {
     let map = arguments as? [String: Any] ?? [:]
+    let configuration = LiquidGlassSliderConfiguration(arguments: map)
     let value = (map["value"] as? NSNumber)?.floatValue ?? slider.value
     slider.minimumValue = (map["min"] as? NSNumber)?.floatValue ?? 0
     slider.maximumValue = (map["max"] as? NSNumber)?.floatValue ?? 1
     slider.isEnabled = map["enabled"] as? Bool ?? true
+    slider.isContinuous = configuration.isContinuous
+    slider.minimumValueImage = Self.image(systemName: configuration.minimumSymbol)
+    slider.maximumValueImage = Self.image(systemName: configuration.maximumSymbol)
     step = (map["step"] as? NSNumber)?.floatValue
     slider.minimumTrackTintColor = LiquidGlassSurfaceConfiguration.color(
       from: map["activeColor"] as? NSNumber
@@ -81,16 +106,24 @@ final class LiquidGlassSliderPlatformView: NSObject, FlutterPlatformView {
     if sliderValue.displayValue != slider.value {
       slider.setValue(sliderValue.displayValue, animated: false)
     }
-    channel.invokeMethod(
-      "onChanged",
-      arguments: Double(sliderValue.reportedValue)
-    )
+    if slider.isContinuous {
+      channel.invokeMethod(
+        "onChanged",
+        arguments: Double(sliderValue.reportedValue)
+      )
+    }
   }
 
   @objc private func changeEnded() {
     let sliderValue = coordinator.value(for: slider.value, isTracking: false)
     if sliderValue.displayValue != slider.value {
       slider.setValue(sliderValue.displayValue, animated: false)
+    }
+    if !slider.isContinuous {
+      channel.invokeMethod(
+        "onChanged",
+        arguments: Double(sliderValue.reportedValue)
+      )
     }
     channel.invokeMethod(
       "onChangeEnd",
@@ -104,5 +137,12 @@ final class LiquidGlassSliderPlatformView: NSObject, FlutterPlatformView {
       maximumValue: slider.maximumValue,
       step: step
     )
+  }
+
+  private static func image(systemName: String?) -> UIImage? {
+    guard let systemName, !systemName.isEmpty else {
+      return nil
+    }
+    return UIImage(systemName: systemName)?.withRenderingMode(.alwaysTemplate)
   }
 }

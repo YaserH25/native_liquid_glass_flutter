@@ -65,6 +65,18 @@ class RunnerTests: XCTestCase {
     XCTAssertEqual(finalValue.displayValue, 0.5, accuracy: 0.0001)
   }
 
+  func testSliderConfigurationParsesNativeEndpointSymbols() {
+    let configuration = LiquidGlassSliderConfiguration(arguments: [
+      "isContinuous": NSNumber(value: false),
+      "minimumSymbol": "speaker.wave.1",
+      "maximumSymbol": "speaker.wave.3"
+    ])
+
+    XCTAssertFalse(configuration.isContinuous)
+    XCTAssertEqual(configuration.minimumSymbol, "speaker.wave.1")
+    XCTAssertEqual(configuration.maximumSymbol, "speaker.wave.3")
+  }
+
   func testSurfaceConfigurationParsesCompositionHints() {
     let configuration = LiquidGlassSurfaceConfiguration(arguments: [
       "cornerStyle": "top",
@@ -140,6 +152,27 @@ class RunnerTests: XCTestCase {
       configuration.backgroundColor,
       LiquidGlassSurfaceConfiguration.color(from: NSNumber(value: 0x80405060))
     )
+  }
+
+  func testNavigationBarConfigurationParsesTrailingActions() {
+    let configuration = LiquidGlassNavigationBarConfiguration(arguments: [
+      "title": "Reader",
+      "actions": [
+        [
+          "title": "Bookmark",
+          "value": "bookmark",
+          "symbol": "bookmark",
+          "role": "normal",
+          "enabled": NSNumber(value: false)
+        ]
+      ]
+    ])
+
+    XCTAssertEqual(configuration.actions.count, 1)
+    XCTAssertEqual(configuration.actions.first?.title, "Bookmark")
+    XCTAssertEqual(configuration.actions.first?.value, "bookmark")
+    XCTAssertEqual(configuration.actions.first?.symbol, "bookmark")
+    XCTAssertFalse(configuration.actions.first?.enabled ?? true)
   }
 
   func testNavigationBarConfigurationHandlesMissingValues() {
@@ -244,6 +277,44 @@ class RunnerTests: XCTestCase {
     XCTAssertFalse(configuration.showsTitle)
     XCTAssertEqual(configuration.symbol, "ellipsis.circle")
     XCTAssertEqual(configuration.displayTitle, "")
+  }
+
+  func testMenuActionConfigurationParsesSymbolGroupAndEnabledState() {
+    let action = LiquidGlassMenuActionConfiguration(arguments: [
+      "title": "Bookmark",
+      "value": "bookmark",
+      "role": "preferred",
+      "symbol": "bookmark",
+      "enabled": NSNumber(value: false),
+      "group": "Primary"
+    ])
+
+    XCTAssertEqual(action.title, "Bookmark")
+    XCTAssertEqual(action.value, "bookmark")
+    XCTAssertEqual(action.role, "preferred")
+    XCTAssertEqual(action.symbol, "bookmark")
+    XCTAssertEqual(action.group, "Primary")
+    XCTAssertFalse(action.enabled)
+  }
+
+  func testTabBarItemConfigurationParsesBadgeAndEnabledState() {
+    let item = LiquidGlassTabBarItemConfiguration(
+      index: 2,
+      arguments: [
+        "label": "Inbox",
+        "symbol": "tray",
+        "selectedSymbol": "tray.fill",
+        "badge": "3",
+        "enabled": NSNumber(value: false)
+      ]
+    )
+
+    XCTAssertEqual(item.index, 2)
+    XCTAssertEqual(item.title, "Inbox")
+    XCTAssertEqual(item.symbol, "tray")
+    XCTAssertEqual(item.selectedSymbol, "tray.fill")
+    XCTAssertEqual(item.badge, "3")
+    XCTAssertFalse(item.enabled)
   }
 
   func testSurfaceBackdropViewDoesNotCaptureTouches() {
