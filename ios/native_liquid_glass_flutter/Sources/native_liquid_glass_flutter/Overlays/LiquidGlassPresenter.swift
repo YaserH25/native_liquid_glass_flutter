@@ -1,7 +1,9 @@
 import Flutter
 import UIKit
 
-final class LiquidGlassPresenter {
+final class LiquidGlassPresenter: NSObject {
+  private var dismissalDelegates: [ObjectIdentifier: LiquidGlassDismissalDelegate] = [:]
+
   func showAlert(call: FlutterMethodCall, result: @escaping FlutterResult) {
     guard let arguments = call.arguments as? [String: Any] else {
       result(FlutterError(code: "bad_arguments", message: nil, details: nil))
@@ -61,6 +63,7 @@ final class LiquidGlassPresenter {
     }
 
     let alert = UIAlertController(title: title, message: "\n\n\n\n\n\n\n", preferredStyle: .actionSheet)
+    let resultGuard = makeResultGuard(for: alert, result: result)
     alert.view.addSubview(datePicker)
     datePicker.translatesAutoresizingMaskIntoConstraints = false
 
@@ -72,14 +75,14 @@ final class LiquidGlassPresenter {
     ])
 
     alert.addAction(UIAlertAction(title: cancelTitle, style: .cancel) { _ in
-      result(nil)
+      resultGuard.complete(nil)
     })
     alert.addAction(UIAlertAction(title: confirmTitle, style: .default) { _ in
       let components = calendar.dateComponents([.hour, .minute], from: datePicker.date)
-      result((components.hour ?? 0) * 60 + (components.minute ?? 0))
+      resultGuard.complete((components.hour ?? 0) * 60 + (components.minute ?? 0))
     })
 
-    present(alert: alert, result: result)
+    present(alert: alert, resultGuard: resultGuard)
   }
 
   func showDatePicker(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -112,6 +115,7 @@ final class LiquidGlassPresenter {
     }
 
     let alert = UIAlertController(title: title, message: "\n\n\n\n\n\n\n", preferredStyle: .actionSheet)
+    let resultGuard = makeResultGuard(for: alert, result: result)
     alert.view.addSubview(datePicker)
     datePicker.translatesAutoresizingMaskIntoConstraints = false
 
@@ -123,14 +127,14 @@ final class LiquidGlassPresenter {
     ])
 
     alert.addAction(UIAlertAction(title: cancelTitle, style: .cancel) { _ in
-      result(nil)
+      resultGuard.complete(nil)
     })
     alert.addAction(UIAlertAction(title: confirmTitle, style: .default) { _ in
       let milliseconds = Int(datePicker.date.timeIntervalSince1970 * 1000)
-      result(milliseconds)
+      resultGuard.complete(milliseconds)
     })
 
-    present(alert: alert, result: result)
+    present(alert: alert, resultGuard: resultGuard)
   }
 
   func showShareSheet(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -146,11 +150,12 @@ final class LiquidGlassPresenter {
       activityItems: items,
       applicationActivities: nil
     )
+    let resultGuard = makeResultGuard(for: activity, result: result)
     activity.completionWithItemsHandler = { _, completed, _, _ in
-      result(completed)
+      resultGuard.complete(completed)
     }
 
-    present(viewController: activity, result: result)
+    present(viewController: activity, resultGuard: resultGuard)
   }
 
   private func presentAlert(
@@ -168,29 +173,30 @@ final class LiquidGlassPresenter {
       message: message,
       preferredStyle: preferredStyle
     )
+    let resultGuard = makeResultGuard(for: alert, result: result)
 
     for action in actions {
       alert.addAction(UIAlertAction(title: action.title, style: action.style) { _ in
-        result(action.value)
+        resultGuard.complete(action.value)
       })
     }
 
     if preferredStyle == .actionSheet, let cancelTitle = cancelTitle {
       alert.addAction(UIAlertAction(title: cancelTitle, style: .cancel) { _ in
-        result(nil)
+        resultGuard.complete(nil)
       })
     }
 
-    present(alert: alert, result: result)
+    present(alert: alert, resultGuard: resultGuard)
   }
 
-  private func present(alert: UIAlertController, result: @escaping FlutterResult) {
-    present(viewController: alert, result: result)
+  private func present(alert: UIAlertController, resultGuard: LiquidGlassResultGuard) {
+    present(viewController: alert, resultGuard: resultGuard)
   }
 
-  private func present(viewController presented: UIViewController, result: @escaping FlutterResult) {
+  private func present(viewController presented: UIViewController, resultGuard: LiquidGlassResultGuard) {
     guard let viewController = topViewController() else {
-      result(FlutterError(code: "no_view_controller", message: nil, details: nil))
+      resultGuard.complete(FlutterError(code: "no_view_controller", message: nil, details: nil))
       return
     }
 
@@ -205,7 +211,21 @@ final class LiquidGlassPresenter {
       popover.permittedArrowDirections = []
     }
 
+    let identifier = ObjectIdentifier(presented)
+    let delegate = LiquidGlassDismissalDelegate(resultGuard: resultGuard)
+    dismissalDelegates[identifier] = delegate
+    presented.presentationController?.delegate = delegate
     viewController.present(presented, animated: true)
+  }
+
+  private func makeResultGuard(
+    for viewController: UIViewController,
+    result: @escaping FlutterResult
+  ) -> LiquidGlassResultGuard {
+    let identifier = ObjectIdentifier(viewController)
+    return LiquidGlassResultGuard(result: result) { [weak self] in
+      self?.dismissalDelegates.removeValue(forKey: identifier)
+    }
   }
 
   private func topViewController() -> UIViewController? {
@@ -221,5 +241,39 @@ final class LiquidGlassPresenter {
     }
 
     return controller
+  }
+}
+
+final class LiquidGlassResultGuard {
+  private let result: FlutterResult
+  private let onComplete: () -> Void
+  private var completed = false
+
+  init(result: @escaping FlutterResult, onComplete: @escaping () -> Void) {
+    self.result = result
+    self.onComplete = onComplete
+  }
+
+  func complete(_ value: Any?) {
+    guard !completed else {
+      return
+    }
+
+    completed = true
+    result(value)
+    onComplete()
+  }
+}
+
+final class LiquidGlassDismissalDelegate: NSObject, UIAdaptivePresentationControllerDelegate {
+  private let resultGuard: LiquidGlassResultGuard
+
+  init(resultGuard: LiquidGlassResultGuard) {
+    self.resultGuard = resultGuard
+    super.init()
+  }
+
+  func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
+    resultGuard.complete(nil)
   }
 }

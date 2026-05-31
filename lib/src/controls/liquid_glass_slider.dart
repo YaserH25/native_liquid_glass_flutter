@@ -38,22 +38,42 @@ class LiquidGlassSlider extends StatefulWidget {
 
 class LiquidGlassSliderState extends State<LiquidGlassSlider> {
   MethodChannel? channel;
+  double? lastNativeValue;
 
   @override
   void didUpdateWidget(LiquidGlassSlider oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (usesNativeView) {
+      final externalValueChange =
+          oldWidget.value != widget.value && !isNativeEcho(widget.value);
+      final configurationChange =
+          oldWidget.min != widget.min ||
+          oldWidget.max != widget.max ||
+          oldWidget.step != widget.step ||
+          oldWidget.enabled != widget.enabled ||
+          oldWidget.activeColor != widget.activeColor ||
+          oldWidget.inactiveColor != widget.inactiveColor;
 
-    if (oldWidget.value != widget.value ||
-        oldWidget.min != widget.min ||
-        oldWidget.max != widget.max ||
-        oldWidget.enabled != widget.enabled) {
-      channel?.invokeMethod<void>('setConfiguration', platformConfiguration());
+      if (externalValueChange || configurationChange) {
+        channel?.invokeMethod<void>(
+          'setConfiguration',
+          platformConfiguration(),
+        );
+      }
+    } else {
+      clearChannel();
     }
   }
 
   @override
+  void dispose() {
+    clearChannel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (widget.useNativeOnIOS && LiquidGlassPlatform.isNativeIOS) {
+    if (usesNativeView) {
       return SizedBox(
         height: widget.height,
         child: UiKitView(
@@ -83,7 +103,12 @@ class LiquidGlassSliderState extends State<LiquidGlassSlider> {
       return null;
     }
 
-    return ((widget.max - widget.min) / step).round();
+    final divisionCount = ((widget.max - widget.min) / step).round();
+    return divisionCount < 1 ? 1 : divisionCount;
+  }
+
+  bool get usesNativeView {
+    return widget.useNativeOnIOS && LiquidGlassPlatform.isNativeIOS;
   }
 
   Map<String, Object?> platformConfiguration() {
@@ -101,8 +126,15 @@ class LiquidGlassSliderState extends State<LiquidGlassSlider> {
   }
 
   void configureChannel(int viewId) {
+    clearChannel();
     channel = MethodChannel('native_liquid_glass_flutter/slider_$viewId');
     channel?.setMethodCallHandler(handleMethodCall);
+  }
+
+  void clearChannel() {
+    channel?.setMethodCallHandler(null);
+    channel = null;
+    lastNativeValue = null;
   }
 
   Future<void> handleMethodCall(MethodCall call) async {
@@ -113,9 +145,24 @@ class LiquidGlassSliderState extends State<LiquidGlassSlider> {
 
     switch (call.method) {
       case 'onChanged':
-        widget.onChanged(value);
+        if (mounted) {
+          lastNativeValue = value;
+          widget.onChanged(value);
+        }
       case 'onChangeEnd':
-        widget.onChangeEnd?.call(value);
+        if (mounted) {
+          lastNativeValue = value;
+          widget.onChangeEnd?.call(value);
+        }
     }
+  }
+
+  bool isNativeEcho(double value) {
+    final nativeValue = lastNativeValue;
+    if (nativeValue == null) {
+      return false;
+    }
+
+    return (nativeValue - value).abs() < 0.000001;
   }
 }

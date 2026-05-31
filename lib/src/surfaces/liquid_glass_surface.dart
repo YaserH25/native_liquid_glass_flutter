@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -93,7 +94,7 @@ class LiquidGlassSurface extends StatelessWidget {
   }
 }
 
-class LiquidGlassSurfaceBackdrop extends StatelessWidget {
+class LiquidGlassSurfaceBackdrop extends StatefulWidget {
   const LiquidGlassSurfaceBackdrop({
     super.key,
     required this.configuration,
@@ -108,28 +109,56 @@ class LiquidGlassSurfaceBackdrop extends StatelessWidget {
   final bool useNative;
 
   @override
+  State<LiquidGlassSurfaceBackdrop> createState() {
+    return LiquidGlassSurfaceBackdropState();
+  }
+}
+
+class LiquidGlassSurfaceBackdropState
+    extends State<LiquidGlassSurfaceBackdrop> {
+  MethodChannel? channel;
+  Map<String, Object?>? lastPlatformConfiguration;
+
+  @override
+  void didUpdateWidget(LiquidGlassSurfaceBackdrop oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.useNative) {
+      syncNativeConfiguration();
+    } else {
+      clearChannel();
+    }
+  }
+
+  @override
+  void dispose() {
+    clearChannel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (useNative) {
+    if (widget.useNative) {
       return UiKitView(
         viewType: LiquidGlassPlatform.surfaceViewType,
-        creationParams: configuration.toPlatformMap(),
+        creationParams: widget.configuration.toPlatformMap(),
         creationParamsCodec: const StandardMessageCodec(),
+        onPlatformViewCreated: configureChannel,
       );
     }
 
     return BackdropFilter(
       filter: ImageFilter.blur(
-        sigmaX: configuration.blurSigma,
-        sigmaY: configuration.blurSigma,
+        sigmaX: widget.configuration.blurSigma,
+        sigmaY: widget.configuration.blurSigma,
       ),
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: _fallbackColor(),
-          borderRadius: borderRadius,
+          borderRadius: widget.borderRadius,
           boxShadow: <BoxShadow>[
             BoxShadow(
               color: Colors.black.withValues(
-                alpha: configuration.shadowOpacity,
+                alpha: widget.configuration.shadowOpacity,
               ),
               blurRadius: 28,
               offset: const Offset(0, 14),
@@ -140,9 +169,30 @@ class LiquidGlassSurfaceBackdrop extends StatelessWidget {
     );
   }
 
+  void configureChannel(int viewId) {
+    clearChannel();
+    channel = MethodChannel('native_liquid_glass_flutter/surface_$viewId');
+    syncNativeConfiguration();
+  }
+
+  void syncNativeConfiguration() {
+    final configuration = widget.configuration.toPlatformMap();
+    if (mapEquals(lastPlatformConfiguration, configuration)) {
+      return;
+    }
+
+    lastPlatformConfiguration = configuration;
+    channel?.invokeMethod<void>('setConfiguration', configuration);
+  }
+
+  void clearChannel() {
+    channel = null;
+    lastPlatformConfiguration = null;
+  }
+
   Color _fallbackColor() {
-    return (configuration.tintColor ?? fallbackColor).withValues(
-      alpha: configuration.tintOpacity,
+    return (widget.configuration.tintColor ?? widget.fallbackColor).withValues(
+      alpha: widget.configuration.tintOpacity,
     );
   }
 }

@@ -9,7 +9,7 @@ public class NativeLiquidGlassFlutterPlugin: NSObject, FlutterPlugin {
     let instance = NativeLiquidGlassFlutterPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
     registrar.register(
-      LiquidGlassSurfaceFactory(),
+      LiquidGlassSurfaceFactory(messenger: registrar.messenger()),
       withId: LiquidGlassViewTypes.surface
     )
     registrar.register(

@@ -69,6 +69,24 @@ void main() {
     expect(value, isNot(0.4));
   });
 
+  testWidgets('slider handles a step larger than its range', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: LiquidGlassSlider(
+            value: 0.5,
+            min: 0,
+            max: 1,
+            step: 5,
+            onChanged: (_) {},
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(Slider), findsOneWidget);
+  });
+
   testWidgets('switch fallback reports changes', (tester) async {
     var value = false;
 

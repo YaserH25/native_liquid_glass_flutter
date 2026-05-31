@@ -2,6 +2,13 @@ import Flutter
 import UIKit
 
 final class LiquidGlassSurfaceFactory: NSObject, FlutterPlatformViewFactory {
+  private let messenger: FlutterBinaryMessenger
+
+  init(messenger: FlutterBinaryMessenger) {
+    self.messenger = messenger
+    super.init()
+  }
+
   func createArgsCodec() -> FlutterMessageCodec & NSObjectProtocol {
     return FlutterStandardMessageCodec.sharedInstance()
   }
@@ -11,6 +18,11 @@ final class LiquidGlassSurfaceFactory: NSObject, FlutterPlatformViewFactory {
     viewIdentifier viewId: Int64,
     arguments args: Any?
   ) -> FlutterPlatformView {
-    return LiquidGlassSurfacePlatformView(frame: frame, arguments: args)
+    return LiquidGlassSurfacePlatformView(
+      frame: frame,
+      viewId: viewId,
+      arguments: args,
+      messenger: messenger
+    )
   }
 }

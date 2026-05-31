@@ -39,7 +39,11 @@ final class LiquidGlassSegmentedControlPlatformView: NSObject, FlutterPlatformVi
     let selectedIndex = map["selectedIndex"] as? Int ?? 0
     let nextControl = UISegmentedControl(items: segments)
 
-    nextControl.selectedSegmentIndex = min(max(selectedIndex, 0), max(segments.count - 1, 0))
+    if segments.isEmpty {
+      nextControl.selectedSegmentIndex = UISegmentedControl.noSegment
+    } else {
+      nextControl.selectedSegmentIndex = min(max(selectedIndex, 0), segments.count - 1)
+    }
     nextControl.isEnabled = map["enabled"] as? Bool ?? true
     nextControl.selectedSegmentTintColor = LiquidGlassSurfaceConfiguration.color(
       from: map["tintColor"] as? NSNumber

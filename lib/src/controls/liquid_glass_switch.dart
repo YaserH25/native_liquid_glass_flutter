@@ -26,21 +26,38 @@ class LiquidGlassSwitch extends StatefulWidget {
 
 class LiquidGlassSwitchState extends State<LiquidGlassSwitch> {
   MethodChannel? channel;
+  bool? lastNativeValue;
 
   @override
   void didUpdateWidget(LiquidGlassSwitch oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (usesNativeView) {
+      final externalValueChange =
+          oldWidget.value != widget.value && widget.value != lastNativeValue;
+      final configurationChange =
+          oldWidget.enabled != widget.enabled ||
+          oldWidget.activeColor != widget.activeColor;
 
-    if (oldWidget.value != widget.value ||
-        oldWidget.enabled != widget.enabled ||
-        oldWidget.activeColor != widget.activeColor) {
-      channel?.invokeMethod<void>('setConfiguration', platformConfiguration());
+      if (externalValueChange || configurationChange) {
+        channel?.invokeMethod<void>(
+          'setConfiguration',
+          platformConfiguration(),
+        );
+      }
+    } else {
+      clearChannel();
     }
   }
 
   @override
+  void dispose() {
+    clearChannel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (widget.useNativeOnIOS && LiquidGlassPlatform.isNativeIOS) {
+    if (usesNativeView) {
       return SizedBox(
         width: 58,
         height: 36,
@@ -70,14 +87,27 @@ class LiquidGlassSwitchState extends State<LiquidGlassSwitch> {
     };
   }
 
+  bool get usesNativeView {
+    return widget.useNativeOnIOS && LiquidGlassPlatform.isNativeIOS;
+  }
+
   void configureChannel(int viewId) {
+    clearChannel();
     channel = MethodChannel('native_liquid_glass_flutter/switch_$viewId');
     channel?.setMethodCallHandler(handleMethodCall);
   }
 
+  void clearChannel() {
+    channel?.setMethodCallHandler(null);
+    channel = null;
+    lastNativeValue = null;
+  }
+
   Future<void> handleMethodCall(MethodCall call) async {
-    if (call.method == 'onChanged' && call.arguments is bool) {
-      widget.onChanged(call.arguments as bool);
+    if (mounted && call.method == 'onChanged' && call.arguments is bool) {
+      final value = call.arguments as bool;
+      lastNativeValue = value;
+      widget.onChanged(value);
     }
   }
 }
