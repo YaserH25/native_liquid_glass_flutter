@@ -17,6 +17,7 @@ final class LiquidGlassSliderPlatformView: NSObject, FlutterPlatformView {
       binaryMessenger: messenger
     )
     super.init()
+    slider.isContinuous = true
     configure(arguments: arguments, animated: false)
     slider.addTarget(self, action: #selector(valueChanged), for: .valueChanged)
     slider.addTarget(
@@ -24,7 +25,17 @@ final class LiquidGlassSliderPlatformView: NSObject, FlutterPlatformView {
       action: #selector(changeEnded),
       for: [.touchUpInside, .touchUpOutside, .touchCancel]
     )
-    channel.setMethodCallHandler(handle)
+    channel.setMethodCallHandler { [weak self] call, result in
+      guard let self else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      self.handle(call, result: result)
+    }
+  }
+
+  deinit {
+    channel.setMethodCallHandler(nil)
   }
 
   func view() -> UIView {
@@ -58,29 +69,40 @@ final class LiquidGlassSliderPlatformView: NSObject, FlutterPlatformView {
       )
     }
 
-    slider.setValue(quantized(value: value, arguments: map), animated: animated)
+    let sliderValue = coordinator.value(for: value, isTracking: false)
+    slider.setValue(sliderValue.displayValue, animated: animated)
   }
 
   @objc private func valueChanged() {
-    let value = quantized(value: slider.value)
-    if value != slider.value {
-      slider.setValue(value, animated: false)
+    let sliderValue = coordinator.value(
+      for: slider.value,
+      isTracking: slider.isTracking
+    )
+    if sliderValue.displayValue != slider.value {
+      slider.setValue(sliderValue.displayValue, animated: false)
     }
-    channel.invokeMethod("onChanged", arguments: Double(value))
+    channel.invokeMethod(
+      "onChanged",
+      arguments: Double(sliderValue.reportedValue)
+    )
   }
 
   @objc private func changeEnded() {
-    channel.invokeMethod("onChangeEnd", arguments: Double(slider.value))
+    let sliderValue = coordinator.value(for: slider.value, isTracking: false)
+    if sliderValue.displayValue != slider.value {
+      slider.setValue(sliderValue.displayValue, animated: false)
+    }
+    channel.invokeMethod(
+      "onChangeEnd",
+      arguments: Double(sliderValue.reportedValue)
+    )
   }
 
-  private func quantized(value: Float, arguments: [String: Any]? = nil) -> Float {
-    let currentStep = (arguments?["step"] as? NSNumber)?.floatValue ?? step
-    guard let currentStep = currentStep, currentStep > 0 else {
-      return min(max(value, slider.minimumValue), slider.maximumValue)
-    }
-
-    let steps = round((value - slider.minimumValue) / currentStep)
-    let quantized = slider.minimumValue + steps * currentStep
-    return min(max(quantized, slider.minimumValue), slider.maximumValue)
+  private var coordinator: LiquidGlassSliderValueCoordinator {
+    return LiquidGlassSliderValueCoordinator(
+      minimumValue: slider.minimumValue,
+      maximumValue: slider.maximumValue,
+      step: step
+    )
   }
 }

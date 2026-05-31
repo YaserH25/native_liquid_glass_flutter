@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../config/liquid_glass_configuration.dart';
 import '../config/liquid_glass_theme.dart';
+import '../platform/liquid_glass_native_policy.dart';
 import '../surfaces/liquid_glass_surface.dart';
 
 class LiquidGlassSheetScaffold extends StatelessWidget {
@@ -25,11 +26,15 @@ class LiquidGlassSheetScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = LiquidGlassTheme.of(context);
+    final surfaceConfiguration =
+        configuration ?? theme.surface.copyWith(cornerRadius: 34);
 
     return LiquidGlassSurface(
       margin: const EdgeInsets.all(8),
       padding: padding,
-      configuration: configuration ?? theme.surface.copyWith(cornerRadius: 34),
+      configuration: surfaceConfiguration.copyWith(
+        role: LiquidGlassSurfaceRole.modal,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,

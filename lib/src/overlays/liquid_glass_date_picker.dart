@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../platform/liquid_glass_platform.dart';
 
@@ -14,14 +15,20 @@ Future<DateTime?> showLiquidGlassDatePicker({
   bool useNativeOnIOS = true,
 }) async {
   if (useNativeOnIOS && LiquidGlassPlatform.isNativeIOS) {
-    return platform.showDatePicker(
-      initialDate: initialDate,
-      minimumDate: minimumDate,
-      maximumDate: maximumDate,
-      title: title,
-      confirmTitle: confirmTitle,
-      cancelTitle: cancelTitle,
-    );
+    try {
+      return await platform.showDatePicker(
+        initialDate: initialDate,
+        minimumDate: minimumDate,
+        maximumDate: maximumDate,
+        title: title,
+        confirmTitle: confirmTitle,
+        cancelTitle: cancelTitle,
+      );
+    } on PlatformException {
+      if (!context.mounted) {
+        return null;
+      }
+    }
   }
 
   return showDatePicker(

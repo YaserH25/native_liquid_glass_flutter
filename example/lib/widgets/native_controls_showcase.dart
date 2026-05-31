@@ -17,25 +17,58 @@ class NativeControlsShowcaseState extends State<NativeControlsShowcase> {
   bool switchValue = true;
   int segmentIndex = 1;
   double stepperValue = 3;
+  String buttonResult = 'No button pressed';
+
+  static const List<String> segmentLabels = <String>[
+    'Subtle',
+    'Regular',
+    'Bold',
+  ];
 
   @override
   Widget build(BuildContext context) {
     return ShowcaseList(
       children: <Widget>[
         ExampleSection(
-          title: 'Native slider',
-          subtitle: 'The value updates continuously while dragging.',
+          title: 'Buttons',
           children: <Widget>[
-            Text('${(sliderValue * 100).round()}%'),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: <Widget>[
+                LiquidGlassButton(
+                  prominent: true,
+                  onPressed: () {
+                    setState(() => buttonResult = 'Primary pressed');
+                  },
+                  child: const Text('Primary'),
+                ),
+                LiquidGlassButton(
+                  onPressed: () {
+                    setState(() => buttonResult = 'Secondary pressed');
+                  },
+                  child: const Text('Secondary'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(buttonResult),
+          ],
+        ),
+        ExampleSection(
+          title: 'Native slider',
+          children: <Widget>[
+            Text('Value: ${(sliderValue * 100).round()}%'),
             LiquidGlassSlider(
               value: sliderValue,
+              nativePolicy: LiquidGlassNativePolicy.native,
               onChanged: (value) => setState(() => sliderValue = value),
               onChangeEnd: (value) => setState(() => sliderValue = value),
             ),
             LiquidGlassButton(
               prominent: true,
               onPressed: showLiveSliderSheet,
-              child: const Text('Open live slider sheet'),
+              child: const Text('Open slider sheet'),
             ),
           ],
         ),
@@ -44,9 +77,10 @@ class NativeControlsShowcaseState extends State<NativeControlsShowcase> {
           children: <Widget>[
             Row(
               children: <Widget>[
-                Expanded(child: Text(switchValue ? 'Enabled' : 'Disabled')),
+                Expanded(child: Text('State: ${switchValue ? 'On' : 'Off'}')),
                 LiquidGlassSwitch(
                   value: switchValue,
+                  nativePolicy: LiquidGlassNativePolicy.native,
                   onChanged: (value) => setState(() => switchValue = value),
                 ),
               ],
@@ -56,8 +90,11 @@ class NativeControlsShowcaseState extends State<NativeControlsShowcase> {
         ExampleSection(
           title: 'Native segmented control',
           children: <Widget>[
+            Text('Selection: ${segmentLabels[segmentIndex]}'),
+            const SizedBox(height: 10),
             LiquidGlassSegmentedControl(
               selectedIndex: segmentIndex,
+              nativePolicy: LiquidGlassNativePolicy.native,
               onChanged: (index) => setState(() => segmentIndex = index),
               segments: const <LiquidGlassSegment>[
                 LiquidGlassSegment(label: 'Subtle'),
@@ -77,6 +114,7 @@ class NativeControlsShowcaseState extends State<NativeControlsShowcase> {
                   value: stepperValue,
                   min: 0,
                   max: 10,
+                  nativePolicy: LiquidGlassNativePolicy.native,
                   onChanged: (value) => setState(() => stepperValue = value),
                 ),
               ],

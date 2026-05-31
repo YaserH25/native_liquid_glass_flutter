@@ -13,7 +13,17 @@ final class LiquidGlassSwitchPlatformView: NSObject, FlutterPlatformView {
     super.init()
     configure(arguments: arguments, animated: false)
     control.addTarget(self, action: #selector(valueChanged), for: .valueChanged)
-    channel.setMethodCallHandler(handle)
+    channel.setMethodCallHandler { [weak self] call, result in
+      guard let self else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      self.handle(call, result: result)
+    }
+  }
+
+  deinit {
+    channel.setMethodCallHandler(nil)
   }
 
   func view() -> UIView {

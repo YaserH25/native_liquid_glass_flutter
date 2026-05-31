@@ -6,6 +6,10 @@ struct LiquidGlassSurfaceConfiguration {
   let cornerRadius: CGFloat
   let interactive: Bool
   let intensity: String
+  let cornerStyle: String
+  let isDark: Bool
+  let role: String
+  let nativePolicy: String
 
   init(arguments: Any?) {
     let map = arguments as? [String: Any] ?? [:]
@@ -18,6 +22,30 @@ struct LiquidGlassSurfaceConfiguration {
     self.cornerRadius = CGFloat(radiusNumber?.doubleValue ?? 28)
     self.interactive = map["interactive"] as? Bool ?? false
     self.intensity = map["intensity"] as? String ?? "regular"
+    self.cornerStyle = map["cornerStyle"] as? String ?? "all"
+    self.isDark = map["isDark"] as? Bool ?? false
+    self.role = map["role"] as? String ?? "content"
+    self.nativePolicy = map["nativePolicy"] as? String ?? "automatic"
+  }
+
+  var resolvedCornerRadius: CGFloat {
+    return cornerStyle == "none" ? 0 : cornerRadius
+  }
+
+  var maskedCorners: CACornerMask {
+    switch cornerStyle {
+    case "top":
+      return [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+    case "none":
+      return []
+    default:
+      return [
+        .layerMinXMinYCorner,
+        .layerMaxXMinYCorner,
+        .layerMinXMaxYCorner,
+        .layerMaxXMaxYCorner
+      ]
+    }
   }
 
   var fallbackBlurStyle: UIBlurEffect.Style {

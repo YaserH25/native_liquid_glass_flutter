@@ -1,6 +1,8 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
+
+import '../config/liquid_glass_theme.dart';
+import '../navigation/liquid_glass_tab_bar.dart';
+import '../platform/liquid_glass_platform.dart';
 
 class LiquidGlassScaffold extends StatelessWidget {
   const LiquidGlassScaffold({
@@ -10,11 +12,7 @@ class LiquidGlassScaffold extends StatelessWidget {
     this.bottomNavigationBar,
     this.backgroundColor,
     this.hideBottomBarWhenKeyboardVisible = true,
-    this.bottomBarMargin = const EdgeInsetsDirectional.only(
-      start: 16,
-      end: 16,
-      bottom: 8,
-    ),
+    this.bottomBarMargin = EdgeInsetsDirectional.zero,
   });
 
   final Widget body;
@@ -24,6 +22,14 @@ class LiquidGlassScaffold extends StatelessWidget {
   final bool hideBottomBarWhenKeyboardVisible;
   final EdgeInsetsDirectional bottomBarMargin;
 
+  static double scrollBottomPadding(BuildContext context, {double base = 0}) {
+    final scope = context
+        .dependOnInheritedWidgetOfExactType<
+          _LiquidGlassScaffoldNavigationScope
+        >();
+    return base + (scope?.bottomScrollInset ?? 0);
+  }
+
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
@@ -31,7 +37,9 @@ class LiquidGlassScaffold extends StatelessWidget {
     final showBottomBar =
         bottomNavigationBar != null &&
         (!keyboardVisible || !hideBottomBarWhenKeyboardVisible);
-    final safeBottom = math.max(mediaQuery.padding.bottom, 0);
+    final bottomScrollInset = showBottomBar
+        ? _bottomNavigationScrollInset(context)
+        : 0.0;
 
     return Scaffold(
       extendBody: true,
@@ -39,16 +47,49 @@ class LiquidGlassScaffold extends StatelessWidget {
       appBar: appBar,
       body: Stack(
         children: <Widget>[
-          Positioned.fill(child: body),
+          Positioned.fill(
+            child: _LiquidGlassScaffoldNavigationScope(
+              bottomScrollInset: bottomScrollInset,
+              child: body,
+            ),
+          ),
           if (showBottomBar)
             PositionedDirectional(
               start: bottomBarMargin.start,
               end: bottomBarMargin.end,
-              bottom: bottomBarMargin.bottom + safeBottom,
+              bottom: bottomBarMargin.bottom,
               child: bottomNavigationBar!,
             ),
         ],
       ),
     );
+  }
+
+  double _bottomNavigationScrollInset(BuildContext context) {
+    final bottomNavigationBar = this.bottomNavigationBar;
+    if (bottomNavigationBar is LiquidGlassTabBar) {
+      return bottomNavigationBar.overlayScrollInset(context);
+    }
+
+    final theme = LiquidGlassTheme.of(context);
+    if (LiquidGlassPlatform.isNativeIOS) {
+      return LiquidGlassTabBar.nativeContentHeight;
+    }
+
+    return theme.tabBarHeight + MediaQuery.viewPaddingOf(context).bottom;
+  }
+}
+
+class _LiquidGlassScaffoldNavigationScope extends InheritedWidget {
+  const _LiquidGlassScaffoldNavigationScope({
+    required this.bottomScrollInset,
+    required super.child,
+  });
+
+  final double bottomScrollInset;
+
+  @override
+  bool updateShouldNotify(_LiquidGlassScaffoldNavigationScope oldWidget) {
+    return bottomScrollInset != oldWidget.bottomScrollInset;
   }
 }

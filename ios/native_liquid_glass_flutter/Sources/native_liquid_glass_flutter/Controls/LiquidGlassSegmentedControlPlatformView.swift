@@ -14,7 +14,17 @@ final class LiquidGlassSegmentedControlPlatformView: NSObject, FlutterPlatformVi
     super.init()
     container.backgroundColor = .clear
     installControl(arguments: arguments)
-    channel.setMethodCallHandler(handle)
+    channel.setMethodCallHandler { [weak self] call, result in
+      guard let self else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      self.handle(call, result: result)
+    }
+  }
+
+  deinit {
+    channel.setMethodCallHandler(nil)
   }
 
   func view() -> UIView {

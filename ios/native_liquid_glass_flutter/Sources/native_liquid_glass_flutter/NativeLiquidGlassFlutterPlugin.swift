@@ -28,6 +28,18 @@ public class NativeLiquidGlassFlutterPlugin: NSObject, FlutterPlugin {
       LiquidGlassStepperFactory(messenger: registrar.messenger()),
       withId: LiquidGlassViewTypes.stepper
     )
+    registrar.register(
+      LiquidGlassTabBarFactory(messenger: registrar.messenger()),
+      withId: LiquidGlassViewTypes.tabBar
+    )
+    registrar.register(
+      LiquidGlassNavigationBarFactory(messenger: registrar.messenger()),
+      withId: LiquidGlassViewTypes.navigationBar
+    )
+    registrar.register(
+      LiquidGlassMenuButtonFactory(messenger: registrar.messenger()),
+      withId: LiquidGlassViewTypes.menuButton
+    )
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -46,6 +58,8 @@ public class NativeLiquidGlassFlutterPlugin: NSObject, FlutterPlugin {
       presenter.showOptionPicker(call: call, result: result)
     case "showShareSheet":
       presenter.showShareSheet(call: call, result: result)
+    case "cancelPresentedOverlay":
+      presenter.cancelPresentedOverlay(result: result)
     default:
       result(FlutterMethodNotImplemented)
     }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../controls/liquid_glass_button.dart';
 import '../platform/liquid_glass_platform.dart';
@@ -15,12 +16,18 @@ Future<String?> showLiquidGlassActionSheet({
   bool useNativeOnIOS = true,
 }) async {
   if (useNativeOnIOS && LiquidGlassPlatform.isNativeIOS) {
-    return platform.showActionSheet(
-      title: title,
-      message: message,
-      actions: actions,
-      cancelTitle: cancelTitle,
-    );
+    try {
+      return await platform.showActionSheet(
+        title: title,
+        message: message,
+        actions: actions,
+        cancelTitle: cancelTitle,
+      );
+    } on PlatformException {
+      if (!context.mounted) {
+        return null;
+      }
+    }
   }
 
   return showLiquidGlassSheet<String>(
@@ -51,6 +58,10 @@ class LiquidGlassActionSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final cancelAction = actions
+        .where((action) => action.role == LiquidGlassActionRole.cancel)
+        .firstOrNull;
+    final visibleActions = actions.where((action) => action != cancelAction);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -61,7 +72,7 @@ class LiquidGlassActionSheet extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 12),
             child: Text(message!, style: textTheme.bodyMedium),
           ),
-        for (final action in actions)
+        for (final action in visibleActions)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: LiquidGlassButton(
@@ -71,8 +82,11 @@ class LiquidGlassActionSheet extends StatelessWidget {
             ),
           ),
         LiquidGlassButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(cancelTitle, textAlign: TextAlign.center),
+          onPressed: () => Navigator.of(context).pop(cancelAction?.value),
+          child: Text(
+            cancelAction?.title ?? cancelTitle,
+            textAlign: TextAlign.center,
+          ),
         ),
       ],
     );

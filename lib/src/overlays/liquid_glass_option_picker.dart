@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../platform/liquid_glass_platform.dart';
 import 'liquid_glass_action.dart';
@@ -14,12 +15,18 @@ Future<String?> showLiquidGlassOptionPicker({
   bool useNativeOnIOS = true,
 }) async {
   if (useNativeOnIOS && LiquidGlassPlatform.isNativeIOS) {
-    return platform.showOptionPicker(
-      title: title,
-      message: message,
-      options: options,
-      cancelTitle: cancelTitle,
-    );
+    try {
+      return await platform.showOptionPicker(
+        title: title,
+        message: message,
+        options: options,
+        cancelTitle: cancelTitle,
+      );
+    } on PlatformException {
+      if (!context.mounted) {
+        return null;
+      }
+    }
   }
 
   return showLiquidGlassActionSheet(

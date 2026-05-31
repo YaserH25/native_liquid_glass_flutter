@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../config/liquid_glass_theme.dart';
+import '../platform/liquid_glass_bridge_keys.dart';
+import '../platform/liquid_glass_native_gestures.dart';
+import '../platform/liquid_glass_native_policy.dart';
+import '../platform/liquid_glass_native_view_channel.dart';
 import '../platform/liquid_glass_platform.dart';
 
 class LiquidGlassStepper extends StatefulWidget {
@@ -15,6 +19,7 @@ class LiquidGlassStepper extends StatefulWidget {
     this.enabled = true,
     this.tintColor,
     this.useNativeOnIOS = true,
+    this.nativePolicy = LiquidGlassNativePolicy.automatic,
   });
 
   final double value;
@@ -25,14 +30,27 @@ class LiquidGlassStepper extends StatefulWidget {
   final bool enabled;
   final Color? tintColor;
   final bool useNativeOnIOS;
+  final LiquidGlassNativePolicy nativePolicy;
 
   @override
   State<LiquidGlassStepper> createState() => LiquidGlassStepperState();
 }
 
 class LiquidGlassStepperState extends State<LiquidGlassStepper> {
-  MethodChannel? channel;
+  late final LiquidGlassNativeViewChannel channel =
+      LiquidGlassNativeViewChannel(
+        nameForViewId: (viewId) =>
+            '${LiquidGlassBridgeChannels.stepperChannelPrefix}_$viewId',
+      );
   double? lastNativeValue;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (usesNativeView) {
+      syncConfiguration();
+    }
+  }
 
   @override
   void didUpdateWidget(LiquidGlassStepper oldWidget) {
@@ -45,13 +63,11 @@ class LiquidGlassStepperState extends State<LiquidGlassStepper> {
           oldWidget.max != widget.max ||
           oldWidget.step != widget.step ||
           oldWidget.enabled != widget.enabled ||
-          oldWidget.tintColor != widget.tintColor;
+          oldWidget.tintColor != widget.tintColor ||
+          oldWidget.nativePolicy != widget.nativePolicy;
 
       if (externalValueChange || configurationChange) {
-        channel?.invokeMethod<void>(
-          'setConfiguration',
-          platformConfiguration(),
-        );
+        syncConfiguration(force: true);
       }
     } else {
       clearChannel();
@@ -74,6 +90,7 @@ class LiquidGlassStepperState extends State<LiquidGlassStepper> {
           viewType: LiquidGlassPlatform.stepperViewType,
           creationParams: platformConfiguration(),
           creationParamsCodec: const StandardMessageCodec(),
+          gestureRecognizers: liquidGlassNativeControlGestureRecognizers,
           onPlatformViewCreated: configureChannel,
         ),
       );
@@ -98,34 +115,42 @@ class LiquidGlassStepperState extends State<LiquidGlassStepper> {
     final theme = LiquidGlassTheme.of(context);
 
     return <String, Object?>{
-      'value': widget.value,
-      'min': widget.min,
-      'max': widget.max,
-      'step': widget.step,
-      'enabled': widget.enabled,
-      'tintColor': (widget.tintColor ?? theme.accentColor).toARGB32(),
+      LiquidGlassBridgeKeys.value: widget.value,
+      LiquidGlassBridgeKeys.min: widget.min,
+      LiquidGlassBridgeKeys.max: widget.max,
+      LiquidGlassBridgeKeys.step: widget.step,
+      LiquidGlassBridgeKeys.enabled: widget.enabled,
+      LiquidGlassBridgeKeys.tintColor: (widget.tintColor ?? theme.accentColor)
+          .toARGB32(),
     };
   }
 
   bool get usesNativeView {
-    return widget.useNativeOnIOS && LiquidGlassPlatform.isNativeIOS;
+    return LiquidGlassNativeResolver(
+      isNativeIOS: widget.useNativeOnIOS && LiquidGlassPlatform.isNativeIOS,
+      policy: widget.nativePolicy,
+    ).usesNativeControl;
   }
 
   void configureChannel(int viewId) {
-    clearChannel();
-    channel = MethodChannel('native_liquid_glass_flutter/stepper_$viewId');
-    channel?.setMethodCallHandler(handleMethodCall);
+    channel.attach(viewId, handler: handleMethodCall);
+    syncConfiguration(force: true);
   }
 
   void clearChannel() {
-    channel?.setMethodCallHandler(null);
-    channel = null;
+    channel.detach();
     lastNativeValue = null;
+  }
+
+  void syncConfiguration({bool force = false}) {
+    channel.sync(platformConfiguration(), force: force);
   }
 
   Future<void> handleMethodCall(MethodCall call) async {
     final value = (call.arguments as num?)?.toDouble();
-    if (mounted && call.method == 'onChanged' && value != null) {
+    if (mounted &&
+        call.method == LiquidGlassBridgeMethods.onChanged &&
+        value != null) {
       lastNativeValue = value;
       widget.onChanged(value);
     }

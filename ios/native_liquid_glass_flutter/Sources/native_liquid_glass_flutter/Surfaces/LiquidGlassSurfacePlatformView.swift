@@ -3,9 +3,9 @@ import SwiftUI
 import UIKit
 
 final class LiquidGlassSurfacePlatformView: NSObject, FlutterPlatformView {
-  private let containerView: UIView
+  private let containerView: LiquidGlassPassthroughView
   private let channel: FlutterMethodChannel
-  private var hostingController: UIViewController?
+  private var hostingContainer: UIView?
 
   init(
     frame: CGRect,
@@ -13,16 +13,28 @@ final class LiquidGlassSurfacePlatformView: NSObject, FlutterPlatformView {
     arguments: Any?,
     messenger: FlutterBinaryMessenger
   ) {
-    self.containerView = UIView(frame: frame)
+    self.containerView = LiquidGlassPassthroughView(frame: frame)
     self.channel = FlutterMethodChannel(
       name: "native_liquid_glass_flutter/surface_\(viewId)",
       binaryMessenger: messenger
     )
     super.init()
 
+    containerView.isOpaque = false
     containerView.backgroundColor = .clear
     configure(arguments: arguments)
-    channel.setMethodCallHandler(handle)
+    channel.setMethodCallHandler { [weak self] call, result in
+      guard let self else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      self.handle(call, result: result)
+    }
+  }
+
+  deinit {
+    uninstallHostingContainerIfNeeded()
+    channel.setMethodCallHandler(nil)
   }
 
   func view() -> UIView {
@@ -42,8 +54,15 @@ final class LiquidGlassSurfacePlatformView: NSObject, FlutterPlatformView {
   private func configure(arguments: Any?) {
     let configuration = LiquidGlassSurfaceConfiguration(arguments: arguments)
 
-    containerView.layer.cornerRadius = configuration.cornerRadius
+    containerView.isOpaque = false
+    containerView.backgroundColor = .clear
+    containerView.overrideUserInterfaceStyle = configuration.isDark
+      ? .dark
+      : .light
+    containerView.isUserInteractionEnabled = false
+    containerView.layer.cornerRadius = configuration.resolvedCornerRadius
     containerView.layer.cornerCurve = .continuous
+    containerView.layer.maskedCorners = configuration.maskedCorners
     containerView.clipsToBounds = true
 
     if #available(iOS 26.0, *) {
@@ -57,10 +76,17 @@ final class LiquidGlassSurfacePlatformView: NSObject, FlutterPlatformView {
   private func installFallbackMaterial(
     configuration: LiquidGlassSurfaceConfiguration
   ) {
+    uninstallHostingContainerIfNeeded()
+
     let effect = UIBlurEffect(style: configuration.fallbackBlurStyle)
     let effectView = UIVisualEffectView(effect: effect)
     effectView.frame = containerView.bounds
     effectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    effectView.isOpaque = false
+    effectView.isUserInteractionEnabled = false
+    effectView.overrideUserInterfaceStyle = configuration.isDark
+      ? .dark
+      : .light
     effectView.backgroundColor = configuration.tintColor.withAlphaComponent(
       configuration.tintOpacity
     )
@@ -71,19 +97,44 @@ final class LiquidGlassSurfacePlatformView: NSObject, FlutterPlatformView {
   private func updateLiquidGlass(
     configuration: LiquidGlassSurfaceConfiguration
   ) {
-    if let hostingController = hostingController as? UIHostingController<LiquidGlassSwiftUISurface> {
-      hostingController.rootView = LiquidGlassSwiftUISurface(configuration: configuration)
-      return
+    let hostingContainer = resolveHostingContainer()
+    containerView.subviews
+      .filter { $0 !== hostingContainer }
+      .forEach { $0.removeFromSuperview() }
+
+    hostingContainer.install(
+      rootView: LiquidGlassSwiftUISurface(configuration: configuration),
+      isDark: configuration.isDark
+    )
+  }
+
+  @available(iOS 26.0, *)
+  private func resolveHostingContainer()
+    -> LiquidGlassHostingContainer<LiquidGlassSwiftUISurface>
+  {
+    if let hostingContainer = hostingContainer
+      as? LiquidGlassHostingContainer<LiquidGlassSwiftUISurface>
+    {
+      hostingContainer.frame = containerView.bounds
+      return hostingContainer
     }
 
-    let hostingController = UIHostingController(
-      rootView: LiquidGlassSwiftUISurface(configuration: configuration)
+    let hostingContainer = LiquidGlassHostingContainer<LiquidGlassSwiftUISurface>(
+      frame: containerView.bounds
     )
+    hostingContainer.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    containerView.addSubview(hostingContainer)
+    self.hostingContainer = hostingContainer
+    return hostingContainer
+  }
 
-    hostingController.view.frame = containerView.bounds
-    hostingController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-    hostingController.view.backgroundColor = .clear
-    containerView.addSubview(hostingController.view)
-    self.hostingController = hostingController
+  private func uninstallHostingContainerIfNeeded() {
+    if #available(iOS 26.0, *) {
+      (hostingContainer as? LiquidGlassHostingContainer<LiquidGlassSwiftUISurface>)?
+        .uninstall()
+    }
+
+    hostingContainer?.removeFromSuperview()
+    hostingContainer = nil
   }
 }

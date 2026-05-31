@@ -15,23 +15,23 @@ class ExampleSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     return LiquidGlassSurface(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(18),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           Text(
             title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
           ),
           if (subtitle != null) ...<Widget>[
             const SizedBox(height: 4),
-            Text(subtitle!, style: Theme.of(context).textTheme.bodyMedium),
+            Text(subtitle!, style: textTheme.bodySmall),
           ],
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           ...children,
         ],
       ),

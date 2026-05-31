@@ -28,6 +28,7 @@ class SliderSheetContentState extends State<SliderSheetContent> {
         const SizedBox(height: 16),
         LiquidGlassSlider(
           value: value,
+          nativePolicy: LiquidGlassNativePolicy.native,
           onChanged: (nextValue) => setState(() => value = nextValue),
           onChangeEnd: (nextValue) => setState(() => value = nextValue),
         ),

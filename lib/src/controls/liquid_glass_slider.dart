@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../config/liquid_glass_theme.dart';
+import '../platform/liquid_glass_bridge_keys.dart';
+import '../platform/liquid_glass_native_gestures.dart';
+import '../platform/liquid_glass_native_policy.dart';
+import '../platform/liquid_glass_native_view_channel.dart';
 import '../platform/liquid_glass_platform.dart';
 
 class LiquidGlassSlider extends StatefulWidget {
@@ -18,6 +22,7 @@ class LiquidGlassSlider extends StatefulWidget {
     this.inactiveColor,
     this.enabled = true,
     this.useNativeOnIOS = true,
+    this.nativePolicy = LiquidGlassNativePolicy.automatic,
   });
 
   final double value;
@@ -31,14 +36,27 @@ class LiquidGlassSlider extends StatefulWidget {
   final Color? inactiveColor;
   final bool enabled;
   final bool useNativeOnIOS;
+  final LiquidGlassNativePolicy nativePolicy;
 
   @override
   State<LiquidGlassSlider> createState() => LiquidGlassSliderState();
 }
 
 class LiquidGlassSliderState extends State<LiquidGlassSlider> {
-  MethodChannel? channel;
+  late final LiquidGlassNativeViewChannel channel =
+      LiquidGlassNativeViewChannel(
+        nameForViewId: (viewId) =>
+            '${LiquidGlassBridgeChannels.sliderChannelPrefix}_$viewId',
+      );
   double? lastNativeValue;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (usesNativeView) {
+      syncConfiguration();
+    }
+  }
 
   @override
   void didUpdateWidget(LiquidGlassSlider oldWidget) {
@@ -52,13 +70,11 @@ class LiquidGlassSliderState extends State<LiquidGlassSlider> {
           oldWidget.step != widget.step ||
           oldWidget.enabled != widget.enabled ||
           oldWidget.activeColor != widget.activeColor ||
-          oldWidget.inactiveColor != widget.inactiveColor;
+          oldWidget.inactiveColor != widget.inactiveColor ||
+          oldWidget.nativePolicy != widget.nativePolicy;
 
       if (externalValueChange || configurationChange) {
-        channel?.invokeMethod<void>(
-          'setConfiguration',
-          platformConfiguration(),
-        );
+        syncConfiguration(force: true);
       }
     } else {
       clearChannel();
@@ -80,6 +96,7 @@ class LiquidGlassSliderState extends State<LiquidGlassSlider> {
           viewType: LiquidGlassPlatform.sliderViewType,
           creationParams: platformConfiguration(),
           creationParamsCodec: const StandardMessageCodec(),
+          gestureRecognizers: liquidGlassNativeControlGestureRecognizers,
           onPlatformViewCreated: configureChannel,
         ),
       );
@@ -108,33 +125,39 @@ class LiquidGlassSliderState extends State<LiquidGlassSlider> {
   }
 
   bool get usesNativeView {
-    return widget.useNativeOnIOS && LiquidGlassPlatform.isNativeIOS;
+    return LiquidGlassNativeResolver(
+      isNativeIOS: widget.useNativeOnIOS && LiquidGlassPlatform.isNativeIOS,
+      policy: widget.nativePolicy,
+    ).usesNativeControl;
   }
 
   Map<String, Object?> platformConfiguration() {
     final theme = LiquidGlassTheme.of(context);
 
     return <String, Object?>{
-      'value': widget.value,
-      'min': widget.min,
-      'max': widget.max,
-      'step': widget.step,
-      'enabled': widget.enabled,
-      'activeColor': (widget.activeColor ?? theme.accentColor).toARGB32(),
-      'inactiveColor': widget.inactiveColor?.toARGB32(),
+      LiquidGlassBridgeKeys.value: widget.value,
+      LiquidGlassBridgeKeys.min: widget.min,
+      LiquidGlassBridgeKeys.max: widget.max,
+      LiquidGlassBridgeKeys.step: widget.step,
+      LiquidGlassBridgeKeys.enabled: widget.enabled,
+      LiquidGlassBridgeKeys.activeColor:
+          (widget.activeColor ?? theme.accentColor).toARGB32(),
+      LiquidGlassBridgeKeys.inactiveColor: widget.inactiveColor?.toARGB32(),
     };
   }
 
   void configureChannel(int viewId) {
-    clearChannel();
-    channel = MethodChannel('native_liquid_glass_flutter/slider_$viewId');
-    channel?.setMethodCallHandler(handleMethodCall);
+    channel.attach(viewId, handler: handleMethodCall);
+    syncConfiguration(force: true);
   }
 
   void clearChannel() {
-    channel?.setMethodCallHandler(null);
-    channel = null;
+    channel.detach();
     lastNativeValue = null;
+  }
+
+  void syncConfiguration({bool force = false}) {
+    channel.sync(platformConfiguration(), force: force);
   }
 
   Future<void> handleMethodCall(MethodCall call) async {
@@ -144,12 +167,12 @@ class LiquidGlassSliderState extends State<LiquidGlassSlider> {
     }
 
     switch (call.method) {
-      case 'onChanged':
+      case LiquidGlassBridgeMethods.onChanged:
         if (mounted) {
           lastNativeValue = value;
           widget.onChanged(value);
         }
-      case 'onChangeEnd':
+      case LiquidGlassBridgeMethods.onChangeEnd:
         if (mounted) {
           lastNativeValue = value;
           widget.onChangeEnd?.call(value);

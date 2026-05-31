@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 
 import '../config/liquid_glass_configuration.dart';
 import '../config/liquid_glass_theme.dart';
+import '../platform/liquid_glass_bridge_keys.dart';
+import '../platform/liquid_glass_native_policy.dart';
 import '../platform/liquid_glass_platform.dart';
 
 class LiquidGlassSurface extends StatelessWidget {
@@ -36,11 +38,12 @@ class LiquidGlassSurface extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = LiquidGlassTheme.of(context);
     final resolvedConfiguration = configuration ?? theme.surface;
-    final radius = BorderRadius.circular(resolvedConfiguration.cornerRadius);
-    final showNative =
-        useNativeOnIOS &&
-        resolvedConfiguration.preferNative &&
-        LiquidGlassPlatform.isNativeIOS;
+    final radius = _borderRadiusFor(resolvedConfiguration);
+    final showNative = LiquidGlassNativeResolver(
+      isNativeIOS: useNativeOnIOS && LiquidGlassPlatform.isNativeIOS,
+      policy: resolvedConfiguration.resolvedNativePolicy,
+      role: resolvedConfiguration.role,
+    ).usesNativeSurface;
 
     return Padding(
       padding: margin,
@@ -92,6 +95,18 @@ class LiquidGlassSurface extends StatelessWidget {
       ),
     );
   }
+
+  BorderRadiusGeometry _borderRadiusFor(
+    LiquidGlassConfiguration configuration,
+  ) {
+    final cornerRadius = Radius.circular(configuration.cornerRadius);
+
+    return switch (configuration.cornerStyle) {
+      LiquidGlassCornerStyle.all => BorderRadius.all(cornerRadius),
+      LiquidGlassCornerStyle.top => BorderRadius.vertical(top: cornerRadius),
+      LiquidGlassCornerStyle.none => BorderRadius.zero,
+    };
+  }
 }
 
 class LiquidGlassSurfaceBackdrop extends StatefulWidget {
@@ -130,6 +145,14 @@ class LiquidGlassSurfaceBackdropState
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.useNative) {
+      syncNativeConfiguration();
+    }
+  }
+
+  @override
   void dispose() {
     clearChannel();
     super.dispose();
@@ -140,7 +163,7 @@ class LiquidGlassSurfaceBackdropState
     if (widget.useNative) {
       return UiKitView(
         viewType: LiquidGlassPlatform.surfaceViewType,
-        creationParams: widget.configuration.toPlatformMap(),
+        creationParams: platformConfiguration(),
         creationParamsCodec: const StandardMessageCodec(),
         onPlatformViewCreated: configureChannel,
       );
@@ -171,23 +194,36 @@ class LiquidGlassSurfaceBackdropState
 
   void configureChannel(int viewId) {
     clearChannel();
-    channel = MethodChannel('native_liquid_glass_flutter/surface_$viewId');
+    channel = MethodChannel(
+      '${LiquidGlassBridgeChannels.surfaceChannelPrefix}_$viewId',
+    );
     syncNativeConfiguration();
   }
 
   void syncNativeConfiguration() {
-    final configuration = widget.configuration.toPlatformMap();
+    final configuration = platformConfiguration();
     if (mapEquals(lastPlatformConfiguration, configuration)) {
       return;
     }
 
     lastPlatformConfiguration = configuration;
-    channel?.invokeMethod<void>('setConfiguration', configuration);
+    channel?.invokeMethod<void>(
+      LiquidGlassBridgeMethods.setConfiguration,
+      configuration,
+    );
   }
 
   void clearChannel() {
     channel = null;
     lastPlatformConfiguration = null;
+  }
+
+  Map<String, Object?> platformConfiguration() {
+    return <String, Object?>{
+      ...widget.configuration.toPlatformMap(),
+      LiquidGlassBridgeKeys.isDark:
+          Theme.of(context).brightness == Brightness.dark,
+    };
   }
 
   Color _fallbackColor() {

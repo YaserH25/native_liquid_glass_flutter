@@ -14,23 +14,33 @@ class ConfigurationShowcase extends StatefulWidget {
 class ConfigurationShowcaseState extends State<ConfigurationShowcase> {
   double radius = 30;
   double tintOpacity = 0.16;
+  int cornerStyleIndex = 0;
+
+  static const List<LiquidGlassCornerStyle> cornerStyles =
+      <LiquidGlassCornerStyle>[
+        LiquidGlassCornerStyle.all,
+        LiquidGlassCornerStyle.top,
+        LiquidGlassCornerStyle.none,
+      ];
 
   @override
   Widget build(BuildContext context) {
+    final cornerStyle = cornerStyles[cornerStyleIndex];
+
     return ShowcaseList(
       children: <Widget>[
         ExampleSection(
-          title: 'Configurable surface',
-          subtitle: 'The same Dart API drives native iOS and Flutter fallback.',
+          title: 'Glass surface',
           children: <Widget>[
             LiquidGlassSurface(
               configuration: LiquidGlassConfiguration(
                 cornerRadius: radius,
+                cornerStyle: cornerStyle,
                 tintOpacity: tintOpacity,
                 interactive: true,
               ),
               padding: const EdgeInsets.all(18),
-              child: const Text('Tune radius and tint opacity below.'),
+              child: const Text('Live preview'),
             ),
             const SizedBox(height: 16),
             Text('Corner radius: ${radius.round()}'),
@@ -40,6 +50,7 @@ class ConfigurationShowcaseState extends State<ConfigurationShowcase> {
               max: 44,
               onChanged: (value) => setState(() => radius = value),
             ),
+            const SizedBox(height: 8),
             Text('Tint opacity: ${tintOpacity.toStringAsFixed(2)}'),
             LiquidGlassSlider(
               value: tintOpacity,
@@ -47,6 +58,26 @@ class ConfigurationShowcaseState extends State<ConfigurationShowcase> {
               max: 0.36,
               onChanged: (value) => setState(() => tintOpacity = value),
             ),
+            const SizedBox(height: 8),
+            Text('Corners: ${cornerStyle.name}'),
+            const SizedBox(height: 10),
+            LiquidGlassSegmentedControl(
+              selectedIndex: cornerStyleIndex,
+              onChanged: (index) => setState(() => cornerStyleIndex = index),
+              segments: const <LiquidGlassSegment>[
+                LiquidGlassSegment(label: 'All'),
+                LiquidGlassSegment(label: 'Top'),
+                LiquidGlassSegment(label: 'None'),
+              ],
+            ),
+          ],
+        ),
+        ExampleSection(
+          title: 'Navigation',
+          children: const <Widget>[
+            Text('Use the bottom tabs to switch sections.'),
+            SizedBox(height: 8),
+            Text('The top and bottom bars are part of the showcase.'),
           ],
         ),
       ],

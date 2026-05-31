@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../platform/liquid_glass_platform.dart';
 
@@ -13,13 +14,19 @@ Future<TimeOfDay?> showLiquidGlassTimePicker({
   bool useNativeOnIOS = true,
 }) async {
   if (useNativeOnIOS && LiquidGlassPlatform.isNativeIOS) {
-    return platform.showTimePicker(
-      initialTime: initialTime,
-      title: title,
-      confirmTitle: confirmTitle,
-      cancelTitle: cancelTitle,
-      minuteInterval: minuteInterval,
-    );
+    try {
+      return await platform.showTimePicker(
+        initialTime: initialTime,
+        title: title,
+        confirmTitle: confirmTitle,
+        cancelTitle: cancelTitle,
+        minuteInterval: minuteInterval,
+      );
+    } on PlatformException {
+      if (!context.mounted) {
+        return null;
+      }
+    }
   }
 
   return showTimePicker(

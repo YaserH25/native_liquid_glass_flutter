@@ -3,6 +3,7 @@ import UIKit
 
 final class LiquidGlassPresenter: NSObject {
   private var dismissalDelegates: [ObjectIdentifier: LiquidGlassDismissalDelegate] = [:]
+  private let activeOverlays = LiquidGlassPresentedOverlayRegistry()
 
   func showAlert(call: FlutterMethodCall, result: @escaping FlutterResult) {
     guard let arguments = call.arguments as? [String: Any] else {
@@ -158,6 +159,28 @@ final class LiquidGlassPresenter: NSObject {
     present(viewController: activity, resultGuard: resultGuard)
   }
 
+  func cancelPresentedOverlay(result: @escaping FlutterResult) {
+    guard Thread.isMainThread else {
+      DispatchQueue.main.async { [weak self] in
+        self?.cancelPresentedOverlay(result: result)
+      }
+      return
+    }
+
+    guard
+      let viewController = topViewController(),
+      viewController is UIAlertController || viewController is UIActivityViewController,
+      activeOverlays.cancel(viewController: viewController)
+    else {
+      result(false)
+      return
+    }
+
+    viewController.dismiss(animated: true) {
+      result(true)
+    }
+  }
+
   private func presentAlert(
     arguments: [String: Any],
     preferredStyle: UIAlertController.Style,
@@ -165,28 +188,31 @@ final class LiquidGlassPresenter: NSObject {
   ) {
     let title = arguments["title"] as? String
     let message = arguments["message"] as? String
-    let cancelTitle = arguments["cancelTitle"] as? String
-    let actions = (arguments["actions"] as? [[String: Any]] ?? [])
-      .compactMap(LiquidGlassActionModel.init)
+    let actionList = LiquidGlassAlertActionList(
+      arguments: arguments,
+      preferredStyle: preferredStyle
+    )
     let alert = UIAlertController(
       title: title,
       message: message,
       preferredStyle: preferredStyle
     )
     let resultGuard = makeResultGuard(for: alert, result: result)
+    var preferredAction: UIAlertAction?
 
-    for action in actions {
-      alert.addAction(UIAlertAction(title: action.title, style: action.style) { _ in
+    for action in actionList.actions {
+      let alertAction = UIAlertAction(title: action.title, style: action.style) { _ in
         resultGuard.complete(action.value)
-      })
+      }
+      alert.addAction(alertAction)
+      if action.isPreferred {
+        preferredAction = alertAction
+      }
     }
 
-    if preferredStyle == .actionSheet, let cancelTitle = cancelTitle {
-      alert.addAction(UIAlertAction(title: cancelTitle, style: .cancel) { _ in
-        resultGuard.complete(nil)
-      })
+    if preferredStyle == .alert {
+      alert.preferredAction = preferredAction
     }
-
     present(alert: alert, resultGuard: resultGuard)
   }
 
@@ -195,8 +221,31 @@ final class LiquidGlassPresenter: NSObject {
   }
 
   private func present(viewController presented: UIViewController, resultGuard: LiquidGlassResultGuard) {
+    guard Thread.isMainThread else {
+      DispatchQueue.main.async { [weak self] in
+        self?.present(viewController: presented, resultGuard: resultGuard)
+      }
+      return
+    }
+
     guard let viewController = topViewController() else {
       resultGuard.complete(FlutterError(code: "no_view_controller", message: nil, details: nil))
+      return
+    }
+
+    guard
+      !viewController.isBeingDismissed,
+      !viewController.isBeingPresented,
+      !(viewController is UIAlertController),
+      !(viewController is UIActivityViewController)
+    else {
+      resultGuard.complete(
+        FlutterError(
+          code: "presentation_busy",
+          message: "Another native overlay is already being presented.",
+          details: nil
+        )
+      )
       return
     }
 
@@ -213,6 +262,7 @@ final class LiquidGlassPresenter: NSObject {
 
     let identifier = ObjectIdentifier(presented)
     let delegate = LiquidGlassDismissalDelegate(resultGuard: resultGuard)
+    activeOverlays.register(viewController: presented, resultGuard: resultGuard)
     dismissalDelegates[identifier] = delegate
     presented.presentationController?.delegate = delegate
     viewController.present(presented, animated: true)
@@ -225,6 +275,7 @@ final class LiquidGlassPresenter: NSObject {
     let identifier = ObjectIdentifier(viewController)
     return LiquidGlassResultGuard(result: result) { [weak self] in
       self?.dismissalDelegates.removeValue(forKey: identifier)
+      self?.activeOverlays.unregister(identifier: identifier)
     }
   }
 
@@ -241,6 +292,32 @@ final class LiquidGlassPresenter: NSObject {
     }
 
     return controller
+  }
+}
+
+final class LiquidGlassPresentedOverlayRegistry {
+  private var resultGuards: [ObjectIdentifier: LiquidGlassResultGuard] = [:]
+
+  func register(viewController: UIViewController, resultGuard: LiquidGlassResultGuard) {
+    resultGuards[ObjectIdentifier(viewController)] = resultGuard
+  }
+
+  func unregister(viewController: UIViewController) {
+    unregister(identifier: ObjectIdentifier(viewController))
+  }
+
+  func unregister(identifier: ObjectIdentifier) {
+    resultGuards.removeValue(forKey: identifier)
+  }
+
+  func cancel(viewController: UIViewController) -> Bool {
+    let identifier = ObjectIdentifier(viewController)
+    guard let resultGuard = resultGuards.removeValue(forKey: identifier) else {
+      return false
+    }
+
+    resultGuard.complete(nil)
+    return true
   }
 }
 

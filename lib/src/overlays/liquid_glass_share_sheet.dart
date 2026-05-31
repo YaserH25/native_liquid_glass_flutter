@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../platform/liquid_glass_platform.dart';
 
@@ -9,7 +10,13 @@ Future<bool?> showLiquidGlassShareSheet({
   bool useNativeOnIOS = true,
 }) async {
   if (useNativeOnIOS && LiquidGlassPlatform.isNativeIOS) {
-    return platform.showShareSheet(items: items);
+    try {
+      return await platform.showShareSheet(items: items);
+    } on PlatformException {
+      if (!context.mounted) {
+        return false;
+      }
+    }
   }
 
   final messenger = ScaffoldMessenger.maybeOf(context);

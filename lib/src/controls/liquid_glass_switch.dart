@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../config/liquid_glass_theme.dart';
+import '../platform/liquid_glass_bridge_keys.dart';
+import '../platform/liquid_glass_native_gestures.dart';
+import '../platform/liquid_glass_native_policy.dart';
+import '../platform/liquid_glass_native_view_channel.dart';
 import '../platform/liquid_glass_platform.dart';
 
 class LiquidGlassSwitch extends StatefulWidget {
@@ -12,6 +16,7 @@ class LiquidGlassSwitch extends StatefulWidget {
     this.activeColor,
     this.enabled = true,
     this.useNativeOnIOS = true,
+    this.nativePolicy = LiquidGlassNativePolicy.automatic,
   });
 
   final bool value;
@@ -19,14 +24,27 @@ class LiquidGlassSwitch extends StatefulWidget {
   final Color? activeColor;
   final bool enabled;
   final bool useNativeOnIOS;
+  final LiquidGlassNativePolicy nativePolicy;
 
   @override
   State<LiquidGlassSwitch> createState() => LiquidGlassSwitchState();
 }
 
 class LiquidGlassSwitchState extends State<LiquidGlassSwitch> {
-  MethodChannel? channel;
+  late final LiquidGlassNativeViewChannel channel =
+      LiquidGlassNativeViewChannel(
+        nameForViewId: (viewId) =>
+            '${LiquidGlassBridgeChannels.switchChannelPrefix}_$viewId',
+      );
   bool? lastNativeValue;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (usesNativeView) {
+      syncConfiguration();
+    }
+  }
 
   @override
   void didUpdateWidget(LiquidGlassSwitch oldWidget) {
@@ -36,13 +54,11 @@ class LiquidGlassSwitchState extends State<LiquidGlassSwitch> {
           oldWidget.value != widget.value && widget.value != lastNativeValue;
       final configurationChange =
           oldWidget.enabled != widget.enabled ||
-          oldWidget.activeColor != widget.activeColor;
+          oldWidget.activeColor != widget.activeColor ||
+          oldWidget.nativePolicy != widget.nativePolicy;
 
       if (externalValueChange || configurationChange) {
-        channel?.invokeMethod<void>(
-          'setConfiguration',
-          platformConfiguration(),
-        );
+        syncConfiguration(force: true);
       }
     } else {
       clearChannel();
@@ -65,6 +81,7 @@ class LiquidGlassSwitchState extends State<LiquidGlassSwitch> {
           viewType: LiquidGlassPlatform.switchViewType,
           creationParams: platformConfiguration(),
           creationParamsCodec: const StandardMessageCodec(),
+          gestureRecognizers: liquidGlassNativeControlGestureRecognizers,
           onPlatformViewCreated: configureChannel,
         ),
       );
@@ -81,30 +98,38 @@ class LiquidGlassSwitchState extends State<LiquidGlassSwitch> {
     final theme = LiquidGlassTheme.of(context);
 
     return <String, Object?>{
-      'value': widget.value,
-      'enabled': widget.enabled,
-      'activeColor': (widget.activeColor ?? theme.accentColor).toARGB32(),
+      LiquidGlassBridgeKeys.value: widget.value,
+      LiquidGlassBridgeKeys.enabled: widget.enabled,
+      LiquidGlassBridgeKeys.activeColor:
+          (widget.activeColor ?? theme.accentColor).toARGB32(),
     };
   }
 
   bool get usesNativeView {
-    return widget.useNativeOnIOS && LiquidGlassPlatform.isNativeIOS;
+    return LiquidGlassNativeResolver(
+      isNativeIOS: widget.useNativeOnIOS && LiquidGlassPlatform.isNativeIOS,
+      policy: widget.nativePolicy,
+    ).usesNativeControl;
   }
 
   void configureChannel(int viewId) {
-    clearChannel();
-    channel = MethodChannel('native_liquid_glass_flutter/switch_$viewId');
-    channel?.setMethodCallHandler(handleMethodCall);
+    channel.attach(viewId, handler: handleMethodCall);
+    syncConfiguration(force: true);
   }
 
   void clearChannel() {
-    channel?.setMethodCallHandler(null);
-    channel = null;
+    channel.detach();
     lastNativeValue = null;
   }
 
+  void syncConfiguration({bool force = false}) {
+    channel.sync(platformConfiguration(), force: force);
+  }
+
   Future<void> handleMethodCall(MethodCall call) async {
-    if (mounted && call.method == 'onChanged' && call.arguments is bool) {
+    if (mounted &&
+        call.method == LiquidGlassBridgeMethods.onChanged &&
+        call.arguments is bool) {
       final value = call.arguments as bool;
       lastNativeValue = value;
       widget.onChanged(value);

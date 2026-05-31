@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../config/liquid_glass_theme.dart';
+import '../platform/liquid_glass_bridge_keys.dart';
+import '../platform/liquid_glass_native_gestures.dart';
+import '../platform/liquid_glass_native_policy.dart';
+import '../platform/liquid_glass_native_view_channel.dart';
 import '../platform/liquid_glass_platform.dart';
 
 class LiquidGlassSegment {
@@ -21,6 +25,7 @@ class LiquidGlassSegmentedControl extends StatefulWidget {
     this.enabled = true,
     this.tintColor,
     this.useNativeOnIOS = true,
+    this.nativePolicy = LiquidGlassNativePolicy.automatic,
   });
 
   final List<LiquidGlassSegment> segments;
@@ -30,6 +35,7 @@ class LiquidGlassSegmentedControl extends StatefulWidget {
   final bool enabled;
   final Color? tintColor;
   final bool useNativeOnIOS;
+  final LiquidGlassNativePolicy nativePolicy;
 
   @override
   State<LiquidGlassSegmentedControl> createState() {
@@ -39,8 +45,20 @@ class LiquidGlassSegmentedControl extends StatefulWidget {
 
 class LiquidGlassSegmentedControlState
     extends State<LiquidGlassSegmentedControl> {
-  MethodChannel? channel;
+  late final LiquidGlassNativeViewChannel channel =
+      LiquidGlassNativeViewChannel(
+        nameForViewId: (viewId) =>
+            '${LiquidGlassBridgeChannels.segmentedChannelPrefix}_$viewId',
+      );
   int? lastNativeValue;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (usesNativeView) {
+      syncConfiguration();
+    }
+  }
 
   @override
   void didUpdateWidget(LiquidGlassSegmentedControl oldWidget) {
@@ -52,13 +70,11 @@ class LiquidGlassSegmentedControlState
       final configurationChange =
           oldWidget.segments != widget.segments ||
           oldWidget.enabled != widget.enabled ||
-          oldWidget.tintColor != widget.tintColor;
+          oldWidget.tintColor != widget.tintColor ||
+          oldWidget.nativePolicy != widget.nativePolicy;
 
       if (externalValueChange || configurationChange) {
-        channel?.invokeMethod<void>(
-          'setConfiguration',
-          platformConfiguration(),
-        );
+        syncConfiguration(force: true);
       }
     } else {
       clearChannel();
@@ -80,6 +96,7 @@ class LiquidGlassSegmentedControlState
           viewType: LiquidGlassPlatform.segmentedControlViewType,
           creationParams: platformConfiguration(),
           creationParamsCodec: const StandardMessageCodec(),
+          gestureRecognizers: liquidGlassNativeControlGestureRecognizers,
           onPlatformViewCreated: configureChannel,
         ),
       );
@@ -109,31 +126,41 @@ class LiquidGlassSegmentedControlState
     final theme = LiquidGlassTheme.of(context);
 
     return <String, Object?>{
-      'segments': widget.segments.map((segment) => segment.label).toList(),
-      'selectedIndex': widget.selectedIndex,
-      'enabled': widget.enabled,
-      'tintColor': (widget.tintColor ?? theme.accentColor).toARGB32(),
+      LiquidGlassBridgeKeys.segments: widget.segments
+          .map((segment) => segment.label)
+          .toList(),
+      LiquidGlassBridgeKeys.selectedIndex: widget.selectedIndex,
+      LiquidGlassBridgeKeys.enabled: widget.enabled,
+      LiquidGlassBridgeKeys.tintColor: (widget.tintColor ?? theme.accentColor)
+          .toARGB32(),
     };
   }
 
   bool get usesNativeView {
-    return widget.useNativeOnIOS && LiquidGlassPlatform.isNativeIOS;
+    return LiquidGlassNativeResolver(
+      isNativeIOS: widget.useNativeOnIOS && LiquidGlassPlatform.isNativeIOS,
+      policy: widget.nativePolicy,
+    ).usesNativeControl;
   }
 
   void configureChannel(int viewId) {
-    clearChannel();
-    channel = MethodChannel('native_liquid_glass_flutter/segmented_$viewId');
-    channel?.setMethodCallHandler(handleMethodCall);
+    channel.attach(viewId, handler: handleMethodCall);
+    syncConfiguration(force: true);
   }
 
   void clearChannel() {
-    channel?.setMethodCallHandler(null);
-    channel = null;
+    channel.detach();
     lastNativeValue = null;
   }
 
+  void syncConfiguration({bool force = false}) {
+    channel.sync(platformConfiguration(), force: force);
+  }
+
   Future<void> handleMethodCall(MethodCall call) async {
-    if (mounted && call.method == 'onChanged' && call.arguments is int) {
+    if (mounted &&
+        call.method == LiquidGlassBridgeMethods.onChanged &&
+        call.arguments is int) {
       final value = call.arguments as int;
       lastNativeValue = value;
       widget.onChanged(value);

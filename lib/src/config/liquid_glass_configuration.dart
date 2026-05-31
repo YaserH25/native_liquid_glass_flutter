@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 
+import '../platform/liquid_glass_bridge_keys.dart';
+import '../platform/liquid_glass_native_policy.dart';
+
 enum LiquidGlassIntensity { subtle, regular, prominent }
+
+enum LiquidGlassCornerStyle { all, top, none }
 
 @immutable
 class LiquidGlassConfiguration {
   const LiquidGlassConfiguration({
     this.preferNative = true,
+    this.nativePolicy = LiquidGlassNativePolicy.automatic,
+    this.role = LiquidGlassSurfaceRole.content,
     this.intensity = LiquidGlassIntensity.regular,
+    this.cornerStyle = LiquidGlassCornerStyle.all,
     this.tintColor,
     this.tintOpacity = 0.16,
     this.blurSigma = 22,
@@ -17,7 +25,10 @@ class LiquidGlassConfiguration {
   });
 
   final bool preferNative;
+  final LiquidGlassNativePolicy nativePolicy;
+  final LiquidGlassSurfaceRole role;
   final LiquidGlassIntensity intensity;
+  final LiquidGlassCornerStyle cornerStyle;
   final Color? tintColor;
   final double tintOpacity;
   final double blurSigma;
@@ -26,9 +37,16 @@ class LiquidGlassConfiguration {
   final double shadowOpacity;
   final bool interactive;
 
+  LiquidGlassNativePolicy get resolvedNativePolicy {
+    return preferNative ? nativePolicy : LiquidGlassNativePolicy.flutter;
+  }
+
   LiquidGlassConfiguration copyWith({
     bool? preferNative,
+    LiquidGlassNativePolicy? nativePolicy,
+    LiquidGlassSurfaceRole? role,
     LiquidGlassIntensity? intensity,
+    LiquidGlassCornerStyle? cornerStyle,
     Color? tintColor,
     double? tintOpacity,
     double? blurSigma,
@@ -39,7 +57,10 @@ class LiquidGlassConfiguration {
   }) {
     return LiquidGlassConfiguration(
       preferNative: preferNative ?? this.preferNative,
+      nativePolicy: nativePolicy ?? this.nativePolicy,
+      role: role ?? this.role,
       intensity: intensity ?? this.intensity,
+      cornerStyle: cornerStyle ?? this.cornerStyle,
       tintColor: tintColor ?? this.tintColor,
       tintOpacity: tintOpacity ?? this.tintOpacity,
       blurSigma: blurSigma ?? this.blurSigma,
@@ -52,15 +73,18 @@ class LiquidGlassConfiguration {
 
   Map<String, Object?> toPlatformMap() {
     return <String, Object?>{
-      'preferNative': preferNative,
-      'intensity': intensity.name,
-      'tintColor': tintColor?.toARGB32(),
-      'tintOpacity': tintOpacity,
-      'blurSigma': blurSigma,
-      'cornerRadius': cornerRadius,
-      'strokeOpacity': strokeOpacity,
-      'shadowOpacity': shadowOpacity,
-      'interactive': interactive,
+      LiquidGlassBridgeKeys.preferNative: preferNative,
+      LiquidGlassBridgeKeys.nativePolicy: resolvedNativePolicy.name,
+      LiquidGlassBridgeKeys.role: role.name,
+      LiquidGlassBridgeKeys.intensity: intensity.name,
+      LiquidGlassBridgeKeys.cornerStyle: cornerStyle.name,
+      LiquidGlassBridgeKeys.tintColor: tintColor?.toARGB32(),
+      LiquidGlassBridgeKeys.tintOpacity: tintOpacity,
+      LiquidGlassBridgeKeys.blurSigma: blurSigma,
+      LiquidGlassBridgeKeys.cornerRadius: cornerRadius,
+      LiquidGlassBridgeKeys.strokeOpacity: strokeOpacity,
+      LiquidGlassBridgeKeys.shadowOpacity: shadowOpacity,
+      LiquidGlassBridgeKeys.interactive: interactive,
     };
   }
 }

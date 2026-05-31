@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../controls/liquid_glass_button.dart';
 import '../platform/liquid_glass_platform.dart';
@@ -14,7 +15,17 @@ Future<String?> showLiquidGlassAlert({
   bool useNativeOnIOS = true,
 }) async {
   if (useNativeOnIOS && LiquidGlassPlatform.isNativeIOS) {
-    return platform.showAlert(title: title, message: message, actions: actions);
+    try {
+      return await platform.showAlert(
+        title: title,
+        message: message,
+        actions: actions,
+      );
+    } on PlatformException {
+      if (!context.mounted) {
+        return null;
+      }
+    }
   }
 
   return showDialog<String>(
