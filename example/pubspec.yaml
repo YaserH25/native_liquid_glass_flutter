@@ -1,0 +1,23 @@
+name: native_liquid_glass_flutter_example
+description: Demonstrates how to use native_liquid_glass_flutter.
+publish_to: none
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  cupertino_icons: ^1.0.8
+  flutter:
+    sdk: flutter
+  native_liquid_glass_flutter:
+    path: ../
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

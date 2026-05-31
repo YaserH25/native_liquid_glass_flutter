@@ -1,0 +1,29 @@
+name: native_liquid_glass_flutter
+description: Native iOS Liquid Glass surfaces, overlays, and adaptive Flutter fallbacks.
+version: 0.0.1
+repository: https://github.com/YaserH25/native_liquid_glass_flutter
+issue_tracker: https://github.com/YaserH25/native_liquid_glass_flutter/issues
+topics:
+  - ios
+  - liquid-glass
+  - native
+  - ui
+
+environment:
+  sdk: ^3.12.0
+  flutter: ">=3.41.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      ios:
+        pluginClass: NativeLiquidGlassFlutterPlugin

@@ -1,0 +1,369 @@
+# native_liquid_glass_flutter
+
+Native iOS Liquid Glass surfaces, system overlays, and adaptive Flutter
+fallbacks for apps that need an iOS-native feel without forcing that design onto
+Android.
+
+The package is a Flutter plugin because the iOS implementation uses Swift code:
+
+- iOS 26 and newer: SwiftUI Liquid Glass through `glassEffect`.
+- iOS 13 through iOS 25: UIKit `UIVisualEffectView` material fallback.
+- Android, desktop, web, and tests: Flutter-rendered superellipse glass fallback.
+
+The example app is a component gallery. It covers surfaces, navigation, live
+sliders, switches, segmented controls, steppers, sheets, alerts, action sheets,
+option pickers, date/time pickers, share sheets, and configuration changes.
+
+## Installation
+
+```yaml
+dependencies:
+  native_liquid_glass_flutter: ^0.0.1
+```
+
+For local development before publishing:
+
+```yaml
+dependencies:
+  native_liquid_glass_flutter:
+    path: ../native_liquid_glass_flutter
+```
+
+## Quick Start
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:native_liquid_glass_flutter/native_liquid_glass_flutter.dart';
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return LiquidGlassTheme(
+      data: LiquidGlassThemeData.fromColorScheme(colorScheme),
+      child: LiquidGlassScaffold(
+        appBar: const LiquidGlassAppBar(
+          center: Icon(Icons.auto_awesome_rounded),
+        ),
+        bottomNavigationBar: LiquidGlassTabBar(
+          selectedIndex: 0,
+          onSelected: (index) {},
+          items: const <LiquidGlassTabItem>[
+            LiquidGlassTabItem(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home_rounded),
+              label: Text('Home'),
+            ),
+            LiquidGlassTabItem(
+              icon: Icon(Icons.book_outlined),
+              selectedIcon: Icon(Icons.book_rounded),
+              label: Text('Read'),
+            ),
+          ],
+        ),
+        body: const ListView(
+          padding: EdgeInsets.fromLTRB(20, 24, 20, 112),
+          children: <Widget>[
+            LiquidGlassSurface(
+              padding: EdgeInsets.all(18),
+              child: Text('Native on iOS. Adaptive everywhere else.'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+## Component Matrix
+
+| Component | iOS implementation | Other platforms |
+| --- | --- | --- |
+| `LiquidGlassSurface` | SwiftUI `glassEffect` on iOS 26+, UIKit material before iOS 26 | Flutter superellipse + blur fallback |
+| `LiquidGlassSlider` | `UISlider` platform view with live `onChanged` updates | Flutter `Slider` |
+| `LiquidGlassSwitch` | `UISwitch` platform view | Flutter `Switch` |
+| `LiquidGlassSegmentedControl` | `UISegmentedControl` platform view | Flutter `SegmentedButton` |
+| `LiquidGlassStepper` | `UIStepper` platform view | Flutter icon buttons |
+| `showLiquidGlassActionSheet` | `UIAlertController.actionSheet` | Package glass bottom sheet |
+| `showLiquidGlassAlert` | `UIAlertController.alert` | Package glass dialog |
+| `showLiquidGlassOptionPicker` | `UIAlertController.actionSheet` | Package glass action sheet |
+| `showLiquidGlassDatePicker` | `UIDatePicker` in native action sheet | Flutter `showDatePicker` |
+| `showLiquidGlassTimePicker` | `UIDatePicker` in native action sheet | Flutter `showTimePicker` |
+| `showLiquidGlassShareSheet` | `UIActivityViewController` | Snackbar fallback |
+
+## Widgets
+
+### LiquidGlassSurface
+
+Use `LiquidGlassSurface` for app bars, bottom bars, sheets, floating controls,
+and small grouped controls.
+
+```dart
+LiquidGlassSurface(
+  configuration: const LiquidGlassConfiguration(
+    cornerRadius: 32,
+    tintOpacity: 0.18,
+    interactive: true,
+  ),
+  padding: const EdgeInsets.all(16),
+  child: const Text('Glass content'),
+)
+```
+
+### LiquidGlassAppBar
+
+`LiquidGlassAppBar` keeps leading/back behavior directional by using Flutter's
+native `BackButton`. It supports a centered widget for an app icon or brand mark.
+
+```dart
+LiquidGlassAppBar(
+  center: Image.asset('assets/app_icon.png', width: 36, height: 36),
+  actions: const <Widget>[IconButton(icon: Icon(Icons.search), onPressed: null)],
+)
+```
+
+### LiquidGlassTabBar
+
+The tab bar is designed to be overlaid by `LiquidGlassScaffold`, so it does not
+reserve layout height like a normal `Scaffold.bottomNavigationBar`.
+
+```dart
+LiquidGlassTabBar(
+  selectedIndex: selectedIndex,
+  onSelected: onTabChanged,
+  iconTextGap: 6,
+  items: const <LiquidGlassTabItem>[
+    LiquidGlassTabItem(icon: Icon(Icons.home_outlined), label: Text('Home')),
+    LiquidGlassTabItem(icon: Icon(Icons.alarm_outlined), label: Text('Alerts')),
+  ],
+)
+```
+
+### Native Controls
+
+`LiquidGlassSlider`, `LiquidGlassSwitch`, `LiquidGlassSegmentedControl`, and
+`LiquidGlassStepper` are native platform views on iOS. They keep their values in
+sync through per-view method channels. The slider calls `onChanged` while the
+thumb moves, so previews can update immediately inside sheets.
+
+```dart
+double textScale = 1;
+
+LiquidGlassSlider(
+  value: textScale,
+  min: 0.8,
+  max: 1.4,
+  step: 0.01,
+  onChanged: (value) {
+    setState(() => textScale = value);
+  },
+  onChangeEnd: saveTextScale,
+)
+```
+
+```dart
+LiquidGlassSegmentedControl(
+  selectedIndex: selectedIndex,
+  onChanged: (index) => setState(() => selectedIndex = index),
+  segments: const <LiquidGlassSegment>[
+    LiquidGlassSegment(label: 'Subtle'),
+    LiquidGlassSegment(label: 'Regular'),
+    LiquidGlassSegment(label: 'Bold'),
+  ],
+)
+```
+
+### Sheets
+
+Custom Flutter content uses a Flutter bottom sheet with the package glass
+surface. The sheet automatically follows the keyboard.
+
+```dart
+await showLiquidGlassSheet<void>(
+  context: context,
+  title: const Text('Add item'),
+  builder: (context) {
+    return const TextField(
+      decoration: InputDecoration(labelText: 'Name'),
+    );
+  },
+);
+```
+
+### Native iOS System Overlays
+
+Simple system overlays call native UIKit on iOS and fall back to Flutter
+elsewhere.
+
+```dart
+final action = await showLiquidGlassActionSheet(
+  context: context,
+  title: 'Choose action',
+  actions: const <LiquidGlassAction>[
+    LiquidGlassAction(
+      title: 'Continue',
+      value: 'continue',
+      role: LiquidGlassActionRole.preferred,
+    ),
+    LiquidGlassAction(
+      title: 'Delete',
+      value: 'delete',
+      role: LiquidGlassActionRole.destructive,
+    ),
+  ],
+);
+```
+
+```dart
+final time = await showLiquidGlassTimePicker(
+  context: context,
+  initialTime: const TimeOfDay(hour: 8, minute: 30),
+  title: 'Reminder time',
+);
+```
+
+```dart
+final option = await showLiquidGlassOptionPicker(
+  context: context,
+  title: 'Glass intensity',
+  options: const <LiquidGlassAction>[
+    LiquidGlassAction(title: 'Subtle', value: 'subtle'),
+    LiquidGlassAction(title: 'Regular', value: 'regular'),
+    LiquidGlassAction(title: 'Prominent', value: 'prominent'),
+  ],
+);
+```
+
+```dart
+final date = await showLiquidGlassDatePicker(
+  context: context,
+  initialDate: DateTime.now(),
+  minimumDate: DateTime(2020),
+  maximumDate: DateTime(2030),
+);
+```
+
+```dart
+await showLiquidGlassShareSheet(
+  context: context,
+  items: const <String>['Shared from my app'],
+);
+```
+
+## Customization
+
+Use `LiquidGlassTheme` for app-wide defaults and pass
+`LiquidGlassConfiguration` only where a component needs a local override.
+
+```dart
+LiquidGlassTheme(
+  data: LiquidGlassThemeData.fromColorScheme(colorScheme).copyWith(
+    surface: const LiquidGlassConfiguration(
+      cornerRadius: 30,
+      tintOpacity: 0.14,
+      strokeOpacity: 0.22,
+    ),
+    appBarHeight: 66,
+    tabBarHeight: 78,
+  ),
+  child: const App(),
+)
+```
+
+Important knobs:
+
+- `preferNative`: turns iOS native platform surfaces on or off.
+- `cornerRadius`: controls continuous superellipse and native rounded shape.
+- `tintColor` and `tintOpacity`: keep the component aligned with your app brand.
+- `interactive`: enables interactive native glass for tappable iOS surfaces.
+- `intensity`: chooses fallback material strength for older iOS.
+
+## Architecture
+
+The package is split by responsibility:
+
+- `config`: theme and serializable glass configuration.
+- `platform`: method channel and iOS platform-view identifiers.
+- `surfaces`: the native-backed glass surface and Flutter fallback.
+- `navigation`: app bar and tab bar composition.
+- `controls`: button plus native-backed slider, switch, segmented control, and
+  stepper.
+- `overlays`: sheets, dialogs, action sheets, option picker, date/time picker,
+  and share sheet helpers.
+- `scaffolds`: overlay-aware scaffold behavior.
+- `ios`: Swift platform views, SwiftUI Liquid Glass, UIKit controls, and UIKit
+  overlay presenters.
+
+The public Dart API depends on small immutable configuration objects. Widgets do
+not own app state, routing, localization, or dependency injection. This keeps the
+package usable in Provider, Riverpod, Bloc, Cubit, vanilla Flutter, or any other
+app architecture.
+
+## Performance
+
+Use native glass where it improves platform fidelity, but avoid overusing native
+platform views.
+
+- Prefer native glass for a small number of stable surfaces: top bars, bottom
+  bars, sheets, and floating controls.
+- Avoid putting native glass surfaces in large scrolling lists.
+- Avoid putting many native platform-view controls in long scrolling lists.
+  Prefer native controls for focused forms, settings panels, and overlays.
+- Keep `LiquidGlassConfiguration` stable; do not recreate highly customized
+  platform-view surfaces every animation frame.
+- For live sliders, update lightweight preview state in `onChanged` and persist
+  expensive work in `onChangeEnd`.
+- Keep slider `step` reasonable. Very small steps can produce excessive state
+  updates if the host app performs heavy work during `onChanged`.
+- Use Flutter fallback surfaces for repeated list rows, chips, and dense content.
+- Keep blur behind readable content simple. Glass should clarify hierarchy, not
+  become the dominant visual layer.
+- Use `LiquidGlassScaffold` for bottom bars that should overlay content and hide
+  above the keyboard.
+- Test dark mode, RTL, text scaling, and reduced transparency/reduced motion in
+  the host app.
+
+## Platform Notes
+
+Native Liquid Glass is only available when the app runs on iOS 26 or newer.
+Older iOS versions use native UIKit material instead. Non-iOS platforms keep the
+same API but render with Flutter so Android design remains under your app's
+control.
+
+The package follows the current Flutter plugin model and iOS availability gates:
+
+- Flutter plugin packages:
+  https://docs.flutter.dev/packages-and-plugins/developing-packages
+- Flutter platform views:
+  https://docs.flutter.dev/platform-integration/ios/platform-views
+- Dart package publishing and package layout:
+  https://dart.dev/tools/pub/publishing
+- Apple Human Interface Guidelines:
+  https://developer.apple.com/design/human-interface-guidelines/
+- Apple Liquid Glass guidance:
+  https://developer.apple.com/documentation/TechnologyOverviews/adopting-liquid-glass
+
+## Publishing Checklist
+
+Before publishing:
+
+```sh
+flutter pub get
+dart format lib test example/lib example/test example/integration_test
+flutter analyze
+flutter test
+cd example
+flutter test
+flutter build ios --simulator
+```
+
+Then update:
+
+- `pubspec.yaml` homepage, repository, issue tracker, and topics.
+- `ios/native_liquid_glass_flutter.podspec` author, homepage, summary.
+- `CHANGELOG.md` with the release notes.
+- `LICENSE` with the intended package license.
