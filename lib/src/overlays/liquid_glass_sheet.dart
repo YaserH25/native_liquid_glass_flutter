@@ -15,6 +15,11 @@ Future<T?> showLiquidGlassSheet<T>({
   bool useRootNavigator = true,
   bool showHandle = true,
   LiquidGlassSheetDetent detent = LiquidGlassSheetDetent.content,
+  EdgeInsetsGeometry margin = LiquidGlassOverlayDefaults.sheetMargin,
+  EdgeInsetsGeometry padding = LiquidGlassOverlayDefaults.sheetPadding,
+  EdgeInsetsGeometry handleMargin =
+      LiquidGlassOverlayDefaults.sheetHandleMargin,
+  double headerSpacing = LiquidGlassOverlayDefaults.sheetHeaderSpacing,
 }) {
   return showModalBottomSheet<T>(
     context: context,
@@ -29,6 +34,10 @@ Future<T?> showLiquidGlassSheet<T>({
         title: title,
         actions: actions,
         configuration: configuration,
+        margin: margin,
+        padding: padding,
+        handleMargin: handleMargin,
+        headerSpacing: headerSpacing,
         showHandle: showHandle,
         child: builder(sheetContext),
       );

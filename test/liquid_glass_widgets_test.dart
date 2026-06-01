@@ -545,6 +545,46 @@ void main() {
     expect(constrainedBox.constraints.maxHeight, 300);
   });
 
+  testWidgets('sheet exposes fallback scaffold layout customization', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) {
+            return Scaffold(
+              body: LiquidGlassButton(
+                onPressed: () {
+                  showLiquidGlassSheet<void>(
+                    context: context,
+                    title: const Text('Custom sheet'),
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.all(4),
+                    handleMargin: const EdgeInsets.only(bottom: 6),
+                    headerSpacing: 10,
+                    builder: (_) => const Text('Sheet body'),
+                  );
+                },
+                child: const Text('Show custom sheet'),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Show custom sheet'));
+    await tester.pumpAndSettle();
+
+    final scaffold = tester.widget<LiquidGlassSheetScaffold>(
+      find.byType(LiquidGlassSheetScaffold),
+    );
+    expect(scaffold.padding, const EdgeInsets.all(12));
+    expect(scaffold.margin, const EdgeInsets.all(4));
+    expect(scaffold.handleMargin, const EdgeInsets.only(bottom: 6));
+    expect(scaffold.headerSpacing, 10);
+  });
+
   testWidgets('button renders child and handles taps', (tester) async {
     var tapped = false;
 
@@ -615,6 +655,102 @@ void main() {
     }
   });
 
+  testWidgets('alert fallback uses framework dialog inset by default', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) {
+            return Scaffold(
+              body: LiquidGlassButton(
+                onPressed: () {
+                  showLiquidGlassAlert(
+                    context: context,
+                    title: 'Native inset',
+                    message: 'Default fallback spacing',
+                    actions: const <LiquidGlassAction>[
+                      LiquidGlassAction(title: 'OK', value: 'ok'),
+                    ],
+                    useNativeOnIOS: false,
+                  );
+                },
+                child: const Text('Show default alert'),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Show default alert'));
+    await tester.pumpAndSettle();
+
+    final dialog = tester.widget<Dialog>(find.byType(Dialog));
+    expect(dialog.insetPadding, isNull);
+
+    final scaffold = tester.widget<LiquidGlassSheetScaffold>(
+      find.byType(LiquidGlassSheetScaffold),
+    );
+    expect(scaffold.padding, LiquidGlassOverlayDefaults.dialogPadding);
+  });
+
+  testWidgets('alert fallback exposes layout customization', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) {
+            return Scaffold(
+              body: LiquidGlassButton(
+                onPressed: () {
+                  showLiquidGlassAlert(
+                    context: context,
+                    title: 'Custom alert',
+                    message: 'Custom message',
+                    actions: const <LiquidGlassAction>[
+                      LiquidGlassAction(title: 'Cancel', value: 'cancel'),
+                      LiquidGlassAction(title: 'Apply', value: 'apply'),
+                    ],
+                    useNativeOnIOS: false,
+                    insetPadding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(14),
+                    messagePadding: const EdgeInsets.only(bottom: 3),
+                    actionSpacing: 4,
+                    actionRunSpacing: 5,
+                  );
+                },
+                child: const Text('Show custom alert'),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Show custom alert'));
+    await tester.pumpAndSettle();
+
+    final dialog = tester.widget<Dialog>(find.byType(Dialog));
+    expect(dialog.insetPadding, const EdgeInsets.all(12));
+
+    final scaffold = tester.widget<LiquidGlassSheetScaffold>(
+      find.byType(LiquidGlassSheetScaffold),
+    );
+    expect(scaffold.padding, const EdgeInsets.all(14));
+
+    final actions = tester.widget<Wrap>(find.byType(Wrap));
+    expect(actions.spacing, 4);
+    expect(actions.runSpacing, 5);
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Padding &&
+            widget.padding == const EdgeInsets.only(bottom: 3),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('action sheet falls back when native presentation fails on iOS', (
     tester,
   ) async {
@@ -659,6 +795,62 @@ void main() {
           .setMockMethodCallHandler(LiquidGlassPlatform.channel, null);
       debugDefaultTargetPlatformOverride = null;
     }
+  });
+
+  testWidgets('action sheet fallback exposes layout customization', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) {
+            return Scaffold(
+              body: LiquidGlassButton(
+                onPressed: () {
+                  showLiquidGlassActionSheet(
+                    context: context,
+                    title: 'Custom action sheet',
+                    message: 'Custom sheet message',
+                    actions: const <LiquidGlassAction>[
+                      LiquidGlassAction(title: 'Continue', value: 'continue'),
+                    ],
+                    useNativeOnIOS: false,
+                    padding: const EdgeInsets.all(15),
+                    margin: const EdgeInsets.all(6),
+                    messagePadding: const EdgeInsets.only(bottom: 5),
+                    actionSpacing: 3,
+                  );
+                },
+                child: const Text('Show custom action sheet'),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Show custom action sheet'));
+    await tester.pumpAndSettle();
+
+    final scaffold = tester.widget<LiquidGlassSheetScaffold>(
+      find.byType(LiquidGlassSheetScaffold),
+    );
+    expect(scaffold.padding, const EdgeInsets.all(15));
+    expect(scaffold.margin, const EdgeInsets.all(6));
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Padding &&
+            widget.padding == const EdgeInsets.only(bottom: 5),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byWidgetPredicate(
+        (widget) => widget is SizedBox && widget.height == 3,
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('tab bar exposes selected tab', (tester) async {

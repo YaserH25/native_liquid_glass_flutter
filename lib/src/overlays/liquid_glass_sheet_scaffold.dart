@@ -5,6 +5,37 @@ import '../config/liquid_glass_theme.dart';
 import '../platform/liquid_glass_native_policy.dart';
 import '../surfaces/liquid_glass_surface.dart';
 
+class LiquidGlassOverlayDefaults {
+  const LiquidGlassOverlayDefaults._();
+
+  static const EdgeInsetsGeometry sheetMargin = EdgeInsets.all(8);
+  static const EdgeInsetsGeometry sheetPadding = EdgeInsets.fromLTRB(
+    20,
+    10,
+    20,
+    20,
+  );
+  static const EdgeInsetsGeometry sheetHandleMargin = EdgeInsets.only(
+    bottom: 14,
+  );
+  static const double sheetHeaderSpacing = 16;
+  static const EdgeInsetsGeometry dialogPadding = EdgeInsets.fromLTRB(
+    20,
+    10,
+    20,
+    20,
+  );
+  static const EdgeInsetsGeometry dialogMessagePadding = EdgeInsets.only(
+    bottom: 16,
+  );
+  static const double dialogActionSpacing = 8;
+  static const double dialogActionRunSpacing = 8;
+  static const EdgeInsetsGeometry actionSheetMessagePadding = EdgeInsets.only(
+    bottom: 12,
+  );
+  static const double actionSheetActionSpacing = 8;
+}
+
 class LiquidGlassSheetScaffold extends StatelessWidget {
   const LiquidGlassSheetScaffold({
     super.key,
@@ -12,7 +43,10 @@ class LiquidGlassSheetScaffold extends StatelessWidget {
     this.title,
     this.actions = const <Widget>[],
     this.configuration,
-    this.padding = const EdgeInsets.fromLTRB(20, 10, 20, 20),
+    this.margin = LiquidGlassOverlayDefaults.sheetMargin,
+    this.padding = LiquidGlassOverlayDefaults.sheetPadding,
+    this.handleMargin = LiquidGlassOverlayDefaults.sheetHandleMargin,
+    this.headerSpacing = LiquidGlassOverlayDefaults.sheetHeaderSpacing,
     this.showHandle = true,
   });
 
@@ -20,7 +54,10 @@ class LiquidGlassSheetScaffold extends StatelessWidget {
   final Widget? title;
   final List<Widget> actions;
   final LiquidGlassConfiguration? configuration;
+  final EdgeInsetsGeometry margin;
   final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry handleMargin;
+  final double headerSpacing;
   final bool showHandle;
 
   @override
@@ -30,7 +67,7 @@ class LiquidGlassSheetScaffold extends StatelessWidget {
         configuration ?? theme.surface.copyWith(cornerRadius: 34);
 
     return LiquidGlassSurface(
-      margin: const EdgeInsets.all(8),
+      margin: margin,
       padding: padding,
       configuration: surfaceConfiguration.copyWith(
         role: LiquidGlassSurfaceRole.modal,
@@ -44,7 +81,7 @@ class LiquidGlassSheetScaffold extends StatelessWidget {
               child: Container(
                 width: 42,
                 height: 5,
-                margin: const EdgeInsets.only(bottom: 14),
+                margin: handleMargin,
                 decoration: ShapeDecoration(
                   color: theme.mutedForegroundColor.withValues(alpha: 0.38),
                   shape: const StadiumBorder(),
@@ -68,7 +105,8 @@ class LiquidGlassSheetScaffold extends StatelessWidget {
                 ...actions,
               ],
             ),
-          if (title != null || actions.isNotEmpty) const SizedBox(height: 16),
+          if (title != null || actions.isNotEmpty)
+            SizedBox(height: headerSpacing),
           child,
         ],
       ),

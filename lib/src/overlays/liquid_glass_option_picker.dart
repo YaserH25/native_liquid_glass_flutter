@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../platform/liquid_glass_platform.dart';
 import 'liquid_glass_action.dart';
 import 'liquid_glass_action_sheet.dart';
+import 'liquid_glass_sheet_scaffold.dart';
 
 Future<String?> showLiquidGlassOptionPicker({
   required BuildContext context,
@@ -13,6 +14,14 @@ Future<String?> showLiquidGlassOptionPicker({
   String cancelTitle = 'Cancel',
   LiquidGlassPlatform platform = const LiquidGlassPlatform(),
   bool useNativeOnIOS = true,
+  EdgeInsetsGeometry margin = LiquidGlassOverlayDefaults.sheetMargin,
+  EdgeInsetsGeometry padding = LiquidGlassOverlayDefaults.sheetPadding,
+  EdgeInsetsGeometry handleMargin =
+      LiquidGlassOverlayDefaults.sheetHandleMargin,
+  double headerSpacing = LiquidGlassOverlayDefaults.sheetHeaderSpacing,
+  EdgeInsetsGeometry messagePadding =
+      LiquidGlassOverlayDefaults.actionSheetMessagePadding,
+  double actionSpacing = LiquidGlassOverlayDefaults.actionSheetActionSpacing,
 }) async {
   if (useNativeOnIOS && LiquidGlassPlatform.isNativeIOS) {
     try {
@@ -37,6 +46,12 @@ Future<String?> showLiquidGlassOptionPicker({
     cancelTitle: cancelTitle,
     platform: platform,
     useNativeOnIOS: false,
+    margin: margin,
+    padding: padding,
+    handleMargin: handleMargin,
+    headerSpacing: headerSpacing,
+    messagePadding: messagePadding,
+    actionSpacing: actionSpacing,
   );
 }
 
@@ -49,6 +64,12 @@ class LiquidGlassPickerButton extends StatelessWidget {
     required this.onChanged,
     this.message,
     this.cancelTitle = 'Cancel',
+    this.margin = LiquidGlassOverlayDefaults.sheetMargin,
+    this.padding = LiquidGlassOverlayDefaults.sheetPadding,
+    this.handleMargin = LiquidGlassOverlayDefaults.sheetHandleMargin,
+    this.headerSpacing = LiquidGlassOverlayDefaults.sheetHeaderSpacing,
+    this.messagePadding = LiquidGlassOverlayDefaults.actionSheetMessagePadding,
+    this.actionSpacing = LiquidGlassOverlayDefaults.actionSheetActionSpacing,
   });
 
   final String title;
@@ -57,6 +78,12 @@ class LiquidGlassPickerButton extends StatelessWidget {
   final ValueChanged<String> onChanged;
   final String? message;
   final String cancelTitle;
+  final EdgeInsetsGeometry margin;
+  final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry handleMargin;
+  final double headerSpacing;
+  final EdgeInsetsGeometry messagePadding;
+  final double actionSpacing;
 
   @override
   Widget build(BuildContext context) {
@@ -80,6 +107,12 @@ class LiquidGlassPickerButton extends StatelessWidget {
           message: message,
           options: options,
           cancelTitle: cancelTitle,
+          margin: margin,
+          padding: padding,
+          handleMargin: handleMargin,
+          headerSpacing: headerSpacing,
+          messagePadding: messagePadding,
+          actionSpacing: actionSpacing,
         );
 
         if (selectedValue != null) {

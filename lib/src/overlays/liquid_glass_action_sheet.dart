@@ -5,6 +5,7 @@ import '../controls/liquid_glass_button.dart';
 import '../platform/liquid_glass_platform.dart';
 import 'liquid_glass_action.dart';
 import 'liquid_glass_sheet.dart';
+import 'liquid_glass_sheet_scaffold.dart';
 
 Future<String?> showLiquidGlassActionSheet({
   required BuildContext context,
@@ -14,6 +15,14 @@ Future<String?> showLiquidGlassActionSheet({
   String cancelTitle = 'Cancel',
   LiquidGlassPlatform platform = const LiquidGlassPlatform(),
   bool useNativeOnIOS = true,
+  EdgeInsetsGeometry margin = LiquidGlassOverlayDefaults.sheetMargin,
+  EdgeInsetsGeometry padding = LiquidGlassOverlayDefaults.sheetPadding,
+  EdgeInsetsGeometry handleMargin =
+      LiquidGlassOverlayDefaults.sheetHandleMargin,
+  double headerSpacing = LiquidGlassOverlayDefaults.sheetHeaderSpacing,
+  EdgeInsetsGeometry messagePadding =
+      LiquidGlassOverlayDefaults.actionSheetMessagePadding,
+  double actionSpacing = LiquidGlassOverlayDefaults.actionSheetActionSpacing,
 }) async {
   if (useNativeOnIOS && LiquidGlassPlatform.isNativeIOS) {
     try {
@@ -33,11 +42,17 @@ Future<String?> showLiquidGlassActionSheet({
   return showLiquidGlassSheet<String>(
     context: context,
     title: Text(title),
+    margin: margin,
+    padding: padding,
+    handleMargin: handleMargin,
+    headerSpacing: headerSpacing,
     builder: (sheetContext) {
       return LiquidGlassActionSheet(
         message: message,
         actions: actions,
         cancelTitle: cancelTitle,
+        messagePadding: messagePadding,
+        actionSpacing: actionSpacing,
       );
     },
   );
@@ -49,11 +64,15 @@ class LiquidGlassActionSheet extends StatelessWidget {
     required this.actions,
     required this.cancelTitle,
     this.message,
+    this.messagePadding = LiquidGlassOverlayDefaults.actionSheetMessagePadding,
+    this.actionSpacing = LiquidGlassOverlayDefaults.actionSheetActionSpacing,
   });
 
   final String? message;
   final List<LiquidGlassAction> actions;
   final String cancelTitle;
+  final EdgeInsetsGeometry messagePadding;
+  final double actionSpacing;
 
   @override
   Widget build(BuildContext context) {
@@ -69,18 +88,17 @@ class LiquidGlassActionSheet extends StatelessWidget {
       children: <Widget>[
         if (message != null)
           Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: messagePadding,
             child: Text(message!, style: textTheme.bodyMedium),
           ),
-        for (final action in visibleActions)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: LiquidGlassButton(
-              prominent: action.role == LiquidGlassActionRole.preferred,
-              onPressed: () => Navigator.of(context).pop(action.value),
-              child: Text(action.title, textAlign: TextAlign.center),
-            ),
+        for (final action in visibleActions) ...<Widget>[
+          LiquidGlassButton(
+            prominent: action.role == LiquidGlassActionRole.preferred,
+            onPressed: () => Navigator.of(context).pop(action.value),
+            child: Text(action.title, textAlign: TextAlign.center),
           ),
+          SizedBox(height: actionSpacing),
+        ],
         LiquidGlassButton(
           onPressed: () => Navigator.of(context).pop(cancelAction?.value),
           child: Text(

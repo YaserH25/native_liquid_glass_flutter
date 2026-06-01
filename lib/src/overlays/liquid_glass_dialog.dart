@@ -13,6 +13,12 @@ Future<String?> showLiquidGlassAlert({
   required List<LiquidGlassAction> actions,
   LiquidGlassPlatform platform = const LiquidGlassPlatform(),
   bool useNativeOnIOS = true,
+  EdgeInsets? insetPadding,
+  EdgeInsetsGeometry padding = LiquidGlassOverlayDefaults.dialogPadding,
+  EdgeInsetsGeometry messagePadding =
+      LiquidGlassOverlayDefaults.dialogMessagePadding,
+  double actionSpacing = LiquidGlassOverlayDefaults.dialogActionSpacing,
+  double actionRunSpacing = LiquidGlassOverlayDefaults.dialogActionRunSpacing,
 }) async {
   if (useNativeOnIOS && LiquidGlassPlatform.isNativeIOS) {
     try {
@@ -34,11 +40,15 @@ Future<String?> showLiquidGlassAlert({
     builder: (dialogContext) {
       return Dialog(
         backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.all(24),
+        insetPadding: insetPadding,
         child: LiquidGlassDialog(
           title: title,
           message: message,
           actions: actions,
+          padding: padding,
+          messagePadding: messagePadding,
+          actionSpacing: actionSpacing,
+          actionRunSpacing: actionRunSpacing,
         ),
       );
     },
@@ -51,30 +61,36 @@ class LiquidGlassDialog extends StatelessWidget {
     required this.title,
     required this.actions,
     this.message,
+    this.padding = LiquidGlassOverlayDefaults.dialogPadding,
+    this.messagePadding = LiquidGlassOverlayDefaults.dialogMessagePadding,
+    this.actionSpacing = LiquidGlassOverlayDefaults.dialogActionSpacing,
+    this.actionRunSpacing = LiquidGlassOverlayDefaults.dialogActionRunSpacing,
   });
 
   final String title;
   final String? message;
   final List<LiquidGlassAction> actions;
+  final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry messagePadding;
+  final double actionSpacing;
+  final double actionRunSpacing;
 
   @override
   Widget build(BuildContext context) {
     return LiquidGlassSheetScaffold(
       showHandle: false,
       title: Text(title),
+      padding: padding,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           if (message != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Text(message!),
-            ),
+            Padding(padding: messagePadding, child: Text(message!)),
           Wrap(
             alignment: WrapAlignment.end,
-            spacing: 8,
-            runSpacing: 8,
+            spacing: actionSpacing,
+            runSpacing: actionRunSpacing,
             children: actions.map((action) {
               return LiquidGlassButton(
                 prominent: action.role == LiquidGlassActionRole.preferred,

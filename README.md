@@ -486,6 +486,7 @@ await showLiquidGlassSheet<void>(
   context: context,
   title: const Text('Add item'),
   detent: LiquidGlassSheetDetent.medium,
+  padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
   builder: (context) {
     return const TextField(
       decoration: InputDecoration(labelText: 'Name'),
@@ -493,6 +494,10 @@ await showLiquidGlassSheet<void>(
   },
 );
 ```
+
+`showLiquidGlassSheet` uses the package's native-style scaffold defaults. You can
+customize the fallback sheet's `margin`, `padding`, `handleMargin`, and
+`headerSpacing` when a screen needs tighter or roomier content.
 
 ### Native iOS System Overlays
 
@@ -508,6 +513,7 @@ the Flutter fallback only while the calling `BuildContext` is still mounted.
 final action = await showLiquidGlassActionSheet(
   context: context,
   title: 'Choose action',
+  padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
   actions: const <LiquidGlassAction>[
     LiquidGlassAction(
       title: 'Continue',
@@ -528,6 +534,7 @@ final result = await showLiquidGlassAlert(
   context: context,
   title: 'Confirm change',
   message: 'Choose one option.',
+  insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
   actions: const <LiquidGlassAction>[
     LiquidGlassAction(
       title: 'Cancel',
@@ -542,6 +549,11 @@ final result = await showLiquidGlassAlert(
   ],
 );
 ```
+
+On iOS, alerts, action sheets, and option pickers default to native UIKit
+presenters. The padding and spacing parameters customize only the Flutter
+fallback shown on other platforms or after a native presentation failure; set
+`useNativeOnIOS: false` when you need those custom fallback values on iOS.
 
 ```dart
 final time = await showLiquidGlassTimePicker(
