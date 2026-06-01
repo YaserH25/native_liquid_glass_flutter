@@ -258,6 +258,7 @@ class RunnerTests: XCTestCase {
     XCTAssertTrue(configuration.tracksSelection)
     XCTAssertTrue(configuration.showsTitle)
     XCTAssertEqual(configuration.displayTitle, "Density: Comfortable")
+    XCTAssertNil(configuration.buttonImageSystemName)
   }
 
   func testMenuButtonConfigurationSupportsIconOnlyPullDownActions() {
@@ -276,6 +277,7 @@ class RunnerTests: XCTestCase {
     XCTAssertFalse(configuration.tracksSelection)
     XCTAssertFalse(configuration.showsTitle)
     XCTAssertEqual(configuration.symbol, "ellipsis.circle")
+    XCTAssertEqual(configuration.buttonImageSystemName, "ellipsis.circle")
     XCTAssertEqual(configuration.displayTitle, "")
   }
 
@@ -295,6 +297,20 @@ class RunnerTests: XCTestCase {
     XCTAssertEqual(action.symbol, "bookmark")
     XCTAssertEqual(action.group, "Primary")
     XCTAssertFalse(action.enabled)
+  }
+
+  func testMenuActionConfigurationHidesSymbolsInSelectionMenus() {
+    let action = LiquidGlassMenuActionConfiguration(arguments: [
+      "title": "Comfortable",
+      "value": "comfortable",
+      "symbol": "rectangle.split.3x1"
+    ])
+
+    XCTAssertNil(action.menuImageSystemName(tracksSelection: true))
+    XCTAssertEqual(
+      action.menuImageSystemName(tracksSelection: false),
+      "rectangle.split.3x1"
+    )
   }
 
   func testTabBarItemConfigurationParsesBadgeAndEnabledState() {
@@ -366,6 +382,26 @@ class RunnerTests: XCTestCase {
 
     XCTAssertEqual(actionList.actions.map(\.title), ["OK"])
     XCTAssertNil(actionList.actions.first?.value)
+  }
+
+  func testAlertStyleControllerDoesNotInstallDismissalDelegate() {
+    let alert = UIAlertController(
+      title: "Confirm",
+      message: nil,
+      preferredStyle: .alert
+    )
+
+    XCTAssertFalse(LiquidGlassPresenter.shouldInstallDismissalDelegate(for: alert))
+  }
+
+  func testActionSheetControllerInstallsDismissalDelegate() {
+    let alert = UIAlertController(
+      title: "Choose",
+      message: nil,
+      preferredStyle: .actionSheet
+    )
+
+    XCTAssertTrue(LiquidGlassPresenter.shouldInstallDismissalDelegate(for: alert))
   }
 
   func testActiveOverlayRegistryCompletesOriginalResultWhenCancelled() {

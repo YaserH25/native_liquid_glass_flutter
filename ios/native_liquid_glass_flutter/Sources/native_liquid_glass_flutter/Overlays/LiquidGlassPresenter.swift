@@ -5,6 +5,15 @@ final class LiquidGlassPresenter: NSObject {
   private var dismissalDelegates: [ObjectIdentifier: LiquidGlassDismissalDelegate] = [:]
   private let activeOverlays = LiquidGlassPresentedOverlayRegistry()
 
+  static func shouldInstallDismissalDelegate(for viewController: UIViewController) -> Bool {
+    if let alert = viewController as? UIAlertController,
+      alert.preferredStyle == .alert
+    {
+      return false
+    }
+    return true
+  }
+
   func showAlert(call: FlutterMethodCall, result: @escaping FlutterResult) {
     guard let arguments = call.arguments as? [String: Any] else {
       result(FlutterError(code: "bad_arguments", message: nil, details: nil))
@@ -261,10 +270,12 @@ final class LiquidGlassPresenter: NSObject {
     }
 
     let identifier = ObjectIdentifier(presented)
-    let delegate = LiquidGlassDismissalDelegate(resultGuard: resultGuard)
     activeOverlays.register(viewController: presented, resultGuard: resultGuard)
-    dismissalDelegates[identifier] = delegate
-    presented.presentationController?.delegate = delegate
+    if Self.shouldInstallDismissalDelegate(for: presented) {
+      let delegate = LiquidGlassDismissalDelegate(resultGuard: resultGuard)
+      dismissalDelegates[identifier] = delegate
+      presented.presentationController?.delegate = delegate
+    }
     viewController.present(presented, animated: true)
   }
 

@@ -29,6 +29,13 @@ struct LiquidGlassMenuButtonConfiguration {
     return selectedTitle.isEmpty ? title : "\(title): \(selectedTitle)"
   }
 
+  var buttonImageSystemName: String? {
+    guard let symbol, !symbol.isEmpty else {
+      return nil
+    }
+    return symbol
+  }
+
   static func actionMaps(from value: Any?) -> [[String: Any]] {
     return value as? [[String: Any]] ?? []
   }
@@ -72,6 +79,13 @@ struct LiquidGlassMenuActionConfiguration {
       from: arguments["enabled"]
     ) ?? true
     self.group = arguments["group"] as? String
+  }
+
+  func menuImageSystemName(tracksSelection: Bool) -> String? {
+    guard !tracksSelection, let symbol, !symbol.isEmpty else {
+      return nil
+    }
+    return symbol
   }
 }
 
@@ -180,14 +194,10 @@ final class LiquidGlassMenuButtonPlatformView: NSObject, FlutterPlatformView {
       var configuration = UIButton.Configuration.tinted()
       let displayTitle = menuConfiguration.displayTitle
       configuration.title = displayTitle.isEmpty ? nil : displayTitle
-      if let symbol = menuConfiguration.symbol, !symbol.isEmpty {
+      if let symbol = menuConfiguration.buttonImageSystemName {
         configuration.image = UIImage(systemName: symbol)
         configuration.imagePlacement = .leading
         configuration.imagePadding = displayTitle.isEmpty ? 0 : 8
-      } else {
-        configuration.image = UIImage(systemName: "chevron.down")
-        configuration.imagePlacement = .trailing
-        configuration.imagePadding = 8
       }
       configuration.baseForegroundColor = tintColor
       configuration.baseBackgroundColor = tintColor.withAlphaComponent(0.14)
@@ -202,10 +212,10 @@ final class LiquidGlassMenuButtonPlatformView: NSObject, FlutterPlatformView {
     } else {
       let displayTitle = menuConfiguration.displayTitle
       button.setTitle(displayTitle.isEmpty ? nil : displayTitle, for: .normal)
-      if let symbol = menuConfiguration.symbol, !symbol.isEmpty {
+      if let symbol = menuConfiguration.buttonImageSystemName {
         button.setImage(UIImage(systemName: symbol), for: .normal)
       } else {
-        button.setImage(UIImage(systemName: "chevron.down"), for: .normal)
+        button.setImage(nil, for: .normal)
       }
       button.setTitleColor(tintColor, for: .normal)
       button.backgroundColor = tintColor.withAlphaComponent(0.14)
@@ -343,7 +353,11 @@ final class LiquidGlassMenuButtonPlatformView: NSObject, FlutterPlatformView {
 
     return UIAction(
       title: action.title,
-      image: Self.image(systemName: action.symbol),
+      image: Self.image(
+        systemName: action.menuImageSystemName(
+          tracksSelection: tracksSelection
+        )
+      ),
       identifier: UIAction.Identifier(action.value),
       discoverabilityTitle: nil,
       attributes: attributes,
