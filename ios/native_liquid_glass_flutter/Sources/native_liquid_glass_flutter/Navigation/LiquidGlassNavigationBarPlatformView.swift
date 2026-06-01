@@ -10,6 +10,7 @@ struct LiquidGlassNavigationBarConfiguration {
   let isRtl: Bool
   let isDark: Bool
   let locale: String?
+  let environment: LiquidGlassEnvironmentConfiguration
   var backIndicatorSymbolName: String {
     return isRtl ? "chevron.forward" : "chevron.backward"
   }
@@ -27,9 +28,11 @@ struct LiquidGlassNavigationBarConfiguration {
     self.backgroundColor = LiquidGlassSurfaceConfiguration.color(
       from: map["backgroundColor"] as? NSNumber
     )
-    self.isRtl = Self.bool(from: map["isRtl"]) ?? false
-    self.isDark = Self.bool(from: map["isDark"]) ?? false
-    self.locale = map["locale"] as? String
+    let environment = LiquidGlassEnvironmentConfiguration(arguments: map)
+    self.environment = environment
+    self.isRtl = environment.isRtl
+    self.isDark = environment.isDark
+    self.locale = environment.locale
   }
 
   private static func bool(from value: Any?) -> Bool? {
@@ -174,12 +177,7 @@ final class LiquidGlassNavigationBarPlatformView:
     containerView.backgroundColor = .clear
     containerView.isOpaque = false
     containerView.clipsToBounds = false
-    containerView.overrideUserInterfaceStyle = configuration.isDark
-      ? .dark
-      : .light
-    containerView.semanticContentAttribute = configuration.isRtl
-      ? .forceRightToLeft
-      : .forceLeftToRight
+    containerView.applyLiquidGlassEnvironment(configuration.environment)
 
     navigationBar.translatesAutoresizingMaskIntoConstraints = false
     navigationBar.delegate = self
@@ -190,12 +188,7 @@ final class LiquidGlassNavigationBarPlatformView:
     navigationBar.titleTextAttributes = [
       .foregroundColor: configuration.foregroundColor
     ]
-    navigationBar.overrideUserInterfaceStyle = configuration.isDark
-      ? .dark
-      : .light
-    navigationBar.semanticContentAttribute = configuration.isRtl
-      ? .forceRightToLeft
-      : .forceLeftToRight
+    navigationBar.applyLiquidGlassEnvironment(configuration.environment)
     navigationBar.standardAppearance = appearance(for: configuration)
     navigationBar.compactAppearance = navigationBar.standardAppearance
     if #available(iOS 15.0, *) {

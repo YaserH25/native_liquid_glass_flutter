@@ -107,6 +107,67 @@ class HomePage extends StatelessWidget {
 | `showLiquidGlassTimePicker` | `UIDatePicker` in native action sheet | Flutter `showTimePicker` |
 | `showLiquidGlassShareSheet` | `UIActivityViewController` | Snackbar fallback |
 
+## Component Showcase
+
+Screenshots below were captured from the current iPhone 17 Pro Simulator.
+
+### Environment, Surface, And RTL
+
+`Directionality`, `Localizations.localeOf`, and `Theme` changes are part of the
+native bridge configuration. Mounted platform views resync when any of those
+inherited values changes, so developers can validate LTR/RTL and language
+changes directly in the example app.
+
+![Environment showcase](doc/screenshots/components/liquid-glass-environment.png)
+![RTL and Arabic language showcase](doc/screenshots/components/liquid-glass-rtl-language.png)
+![Glass surface showcase](doc/screenshots/components/liquid-glass-surface.png)
+
+### Navigation
+
+Use the native app bar and tab bar when the OS should own navigation chrome
+layout, safe-area sizing, item spacing, labels, symbols, badges, and disabled
+states while Flutter keeps routing and selected state.
+
+![Native app bar showcase](doc/screenshots/components/liquid-glass-app-bar.png)
+![Native tab bar showcase](doc/screenshots/components/liquid-glass-tab-bar.png)
+
+### Controls
+
+Core controls are Flutter-first by default and can opt into UIKit on iOS with
+`nativePolicy: LiquidGlassNativePolicy.native`.
+
+![LiquidGlassButton showcase](doc/screenshots/components/liquid-glass-button.png)
+![LiquidGlassSlider showcase](doc/screenshots/components/liquid-glass-slider.png)
+![LiquidGlassSlider endpoint symbols](doc/screenshots/components/liquid-glass-slider-endpoints.png)
+![LiquidGlassSwitch showcase](doc/screenshots/components/liquid-glass-switch.png)
+![LiquidGlassSegmentedControl showcase](doc/screenshots/components/liquid-glass-segmented-control.png)
+![LiquidGlassStepper showcase](doc/screenshots/components/liquid-glass-stepper.png)
+
+### Menus And Pull-Down Buttons
+
+Menus are backed by UIKit `UIButton`, `UIMenu`, and `UIAction`. Selection menus
+show the current value and let UIKit draw the checkmark. Command menus keep the
+button label stable and return the selected command to Flutter.
+
+![Native UIMenu closed](doc/screenshots/components/liquid-glass-uimenu.png)
+![Native UIMenu open](doc/screenshots/components/liquid-glass-uimenu-open.png)
+![Pull-down button showcase](doc/screenshots/components/liquid-glass-pull-down-button.png)
+![Icon action menu showcase](doc/screenshots/components/liquid-glass-action-menu-button.png)
+![Grouped command menu showcase](doc/screenshots/components/liquid-glass-grouped-command-menu.png)
+![Pull-down slider command](doc/screenshots/components/liquid-glass-pull-down-slider.png)
+
+### Overlays And Pickers
+
+Overlays use native UIKit presenters on iOS and Flutter fallbacks elsewhere.
+
+![Bottom sheet showcase](doc/screenshots/components/liquid-glass-bottom-sheet.png)
+![Alert showcase](doc/screenshots/components/liquid-glass-alert.png)
+![Action sheet showcase](doc/screenshots/components/liquid-glass-action-sheet.png)
+![Option picker showcase](doc/screenshots/components/liquid-glass-option-picker.png)
+![Date picker showcase](doc/screenshots/components/liquid-glass-date-picker.png)
+![Time picker showcase](doc/screenshots/components/liquid-glass-time-picker.png)
+![Share sheet showcase](doc/screenshots/components/liquid-glass-share-sheet.png)
+
 ## Widgets
 
 ### LiquidGlassSurface
@@ -228,6 +289,24 @@ LiquidGlassSegmentedControl(
 )
 ```
 
+```dart
+LiquidGlassSwitch(
+  value: enabled,
+  nativePolicy: LiquidGlassNativePolicy.native,
+  onChanged: (value) => setState(() => enabled = value),
+)
+```
+
+```dart
+LiquidGlassStepper(
+  value: count.toDouble(),
+  min: 0,
+  max: 10,
+  nativePolicy: LiquidGlassNativePolicy.native,
+  onChanged: (value) => setState(() => count = value.round()),
+)
+```
+
 `LiquidGlassMenuButton` is a native iOS `UIMenu` control by default. Use it for
 compact option sets where the selected value should stay visible.
 
@@ -306,6 +385,37 @@ LiquidGlassPullDownButton(
 )
 ```
 
+Use pull-down commands to open richer Flutter content when the command needs
+custom controls instead of a simple `UIAction`.
+
+```dart
+LiquidGlassPullDownButton(
+  title: 'Adjust',
+  width: 140,
+  onSelected: (value) async {
+    if (value == 'adjust') {
+      await showLiquidGlassSheet<void>(
+        context: context,
+        title: const Text('Adjust intensity'),
+        builder: (_) {
+          return LiquidGlassSlider(
+            value: intensity,
+            nativePolicy: LiquidGlassNativePolicy.native,
+            minimumNativeSymbol: 'sun.min',
+            maximumNativeSymbol: 'sun.max',
+            onChanged: (value) => setState(() => intensity = value),
+          );
+        },
+      );
+    }
+  },
+  actions: const <LiquidGlassAction>[
+    LiquidGlassAction(title: 'Adjust intensity', value: 'adjust'),
+    LiquidGlassAction(title: 'Reset', value: 'reset'),
+  ],
+)
+```
+
 ### Sheets
 
 Custom Flutter content uses a Flutter bottom sheet with the package glass
@@ -349,6 +459,26 @@ final action = await showLiquidGlassActionSheet(
       title: 'Delete',
       value: 'delete',
       role: LiquidGlassActionRole.destructive,
+    ),
+  ],
+);
+```
+
+```dart
+final result = await showLiquidGlassAlert(
+  context: context,
+  title: 'Confirm change',
+  message: 'Choose one option.',
+  actions: const <LiquidGlassAction>[
+    LiquidGlassAction(
+      title: 'Cancel',
+      value: 'cancel',
+      role: LiquidGlassActionRole.cancel,
+    ),
+    LiquidGlassAction(
+      title: 'Apply',
+      value: 'apply',
+      role: LiquidGlassActionRole.preferred,
     ),
   ],
 );
@@ -476,6 +606,51 @@ for native rendering.
 - Test dark mode, RTL, text scaling, and reduced transparency/reduced motion in
   the host app.
 
+## How The Native Bridge Works
+
+Flutter owns the public API, state, routing, and fallbacks. iOS owns only the
+UIKit/SwiftUI rendering or presentation that was explicitly requested.
+
+1. A Flutter widget resolves `LiquidGlassNativePolicy` and decides whether to
+   render a Flutter fallback or create an iOS platform view.
+2. When a platform view is created, Flutter sends a typed map through
+   `creationParams`. That map includes component state, colors, symbols,
+   enabled state, native policy, and environment keys: `isDark`, `isRtl`, and
+   `locale`.
+3. The Swift platform view parses that map, applies semantic direction and
+   accessibility language to the UIKit view, and configures the native control.
+4. Native user actions call back through the per-view `MethodChannel`; Flutter
+   updates app state and sends a new configuration back when needed.
+5. `didChangeDependencies` and `didUpdateWidget` resync mounted native views, so
+   theme, direction, and language changes rebuild native-side configuration
+   without recreating the whole screen.
+6. On `dispose`/`deinit`, both sides detach handlers so stale native views do
+   not keep sending events into removed Flutter widgets.
+
+This keeps the package close to the pattern used by apps that link Flutter UI to
+native iOS workers: native surfaces and controls provide platform fidelity, but
+Flutter remains the source of truth for app behavior.
+
+## Rules For Adding Native Components
+
+Every new native component should follow the existing bridge shape:
+
+- Start with the Apple system primitive (`UIButton`, `UIMenu`, `UISlider`,
+  `UITabBar`, `UIAlertController`, and so on) before creating custom native UI.
+- Keep a Flutter fallback and keep the public Dart API platform-neutral.
+- Add bridge keys in `liquid_glass_bridge_keys.dart` and use the shared
+  environment configuration for `isDark`, `isRtl`, and `locale`.
+- Sync configuration from `didChangeDependencies` when inherited Flutter values
+  can affect native rendering or accessibility.
+- Keep Swift parsing local and deterministic; use typed helper structs when the
+  map has more than trivial fields.
+- Send native events back to Flutter with method-channel callbacks instead of
+  letting native code own routing or app state.
+- Cover the component with Dart construction tests, channel resync tests,
+  example showcase tests, and an iOS host build.
+- Capture an example screenshot and document the real use case before exposing
+  the component as package API.
+
 ## Platform Notes
 
 Native Liquid Glass is only available when the app runs on iOS 26 or newer.
@@ -495,6 +670,10 @@ The package follows the current Flutter plugin model and iOS availability gates:
   https://developer.apple.com/design/human-interface-guidelines/
 - Apple Liquid Glass guidance:
   https://developer.apple.com/documentation/TechnologyOverviews/adopting-liquid-glass
+- UIKit `UIMenu`:
+  https://developer.apple.com/documentation/uikit/uimenu
+- UIKit `UIButton.showsMenuAsPrimaryAction`:
+  https://developer.apple.com/documentation/uikit/uibutton/showsmenuasprimaryaction
 
 ## Publishing Checklist
 

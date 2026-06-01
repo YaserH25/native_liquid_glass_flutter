@@ -42,6 +42,9 @@ final class LiquidGlassSwitchPlatformView: NSObject, FlutterPlatformView {
 
   private func configure(arguments: Any?, animated: Bool) {
     let map = arguments as? [String: Any] ?? [:]
+    control.applyLiquidGlassEnvironment(
+      LiquidGlassEnvironmentConfiguration(arguments: map)
+    )
     control.isEnabled = map["enabled"] as? Bool ?? true
     control.onTintColor = LiquidGlassSurfaceConfiguration.color(
       from: map["activeColor"] as? NSNumber

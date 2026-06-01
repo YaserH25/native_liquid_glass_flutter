@@ -45,9 +45,12 @@ final class LiquidGlassSegmentedControlPlatformView: NSObject, FlutterPlatformVi
     control.removeFromSuperview()
 
     let map = arguments as? [String: Any] ?? [:]
+    let environment = LiquidGlassEnvironmentConfiguration(arguments: map)
     let segments = map["segments"] as? [String] ?? []
     let selectedIndex = map["selectedIndex"] as? Int ?? 0
     let nextControl = UISegmentedControl(items: segments)
+    container.applyLiquidGlassEnvironment(environment)
+    nextControl.applyLiquidGlassEnvironment(environment)
 
     if segments.isEmpty {
       nextControl.selectedSegmentIndex = UISegmentedControl.noSegment

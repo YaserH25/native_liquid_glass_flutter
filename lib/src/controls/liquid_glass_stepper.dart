@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../config/liquid_glass_theme.dart';
 import '../platform/liquid_glass_bridge_keys.dart';
+import '../platform/liquid_glass_environment.dart';
 import '../platform/liquid_glass_native_gestures.dart';
 import '../platform/liquid_glass_native_policy.dart';
 import '../platform/liquid_glass_native_view_channel.dart';
@@ -122,6 +123,7 @@ class LiquidGlassStepperState extends State<LiquidGlassStepper> {
       LiquidGlassBridgeKeys.enabled: widget.enabled,
       LiquidGlassBridgeKeys.tintColor: (widget.tintColor ?? theme.accentColor)
           .toARGB32(),
+      ...liquidGlassEnvironmentConfiguration(context),
     };
   }
 

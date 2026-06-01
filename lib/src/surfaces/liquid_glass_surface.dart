@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import '../config/liquid_glass_configuration.dart';
 import '../config/liquid_glass_theme.dart';
 import '../platform/liquid_glass_bridge_keys.dart';
+import '../platform/liquid_glass_environment.dart';
 import '../platform/liquid_glass_native_policy.dart';
 import '../platform/liquid_glass_platform.dart';
 
@@ -221,8 +222,7 @@ class LiquidGlassSurfaceBackdropState
   Map<String, Object?> platformConfiguration() {
     return <String, Object?>{
       ...widget.configuration.toPlatformMap(),
-      LiquidGlassBridgeKeys.isDark:
-          Theme.of(context).brightness == Brightness.dark,
+      ...liquidGlassEnvironmentConfiguration(context),
     };
   }
 

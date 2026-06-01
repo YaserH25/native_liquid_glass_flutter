@@ -95,16 +95,12 @@ final class LiquidGlassTabBarPlatformView:
     let backgroundColor = LiquidGlassSurfaceConfiguration.color(
       from: map["backgroundColor"] as? NSNumber
     )
-    let isRtl = Self.bool(from: map["isRtl"]) ?? false
-    let isDark = Self.bool(from: map["isDark"]) ?? false
+    let environment = LiquidGlassEnvironmentConfiguration(arguments: map)
 
     containerView.backgroundColor = .clear
     containerView.isOpaque = false
     containerView.clipsToBounds = false
-    containerView.overrideUserInterfaceStyle = isDark ? .dark : .light
-    containerView.semanticContentAttribute = isRtl
-      ? .forceRightToLeft
-      : .forceLeftToRight
+    containerView.applyLiquidGlassEnvironment(environment)
 
     tabBar.translatesAutoresizingMaskIntoConstraints = false
     tabBar.delegate = self
@@ -112,16 +108,13 @@ final class LiquidGlassTabBarPlatformView:
     tabBar.isTranslucent = true
     tabBar.clipsToBounds = false
     tabBar.tintColor = selectedColor
-    tabBar.overrideUserInterfaceStyle = isDark ? .dark : .light
-    tabBar.semanticContentAttribute = isRtl
-      ? .forceRightToLeft
-      : .forceLeftToRight
+    tabBar.applyLiquidGlassEnvironment(environment)
 
     if #unavailable(iOS 26.0) {
       let appearance = UITabBarAppearance()
       appearance.configureWithDefaultBackground()
       appearance.backgroundColor = backgroundColor.withAlphaComponent(
-        isDark ? 0.86 : 0.78
+        environment.isDark ? 0.86 : 0.78
       )
       tabBar.standardAppearance = appearance
       if #available(iOS 15.0, *) {
@@ -178,16 +171,6 @@ final class LiquidGlassTabBarPlatformView:
 
   func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
     channel.invokeMethod("onTap", arguments: item.tag)
-  }
-
-  private static func bool(from value: Any?) -> Bool? {
-    if let bool = value as? Bool {
-      return bool
-    }
-    if let number = value as? NSNumber {
-      return number.boolValue
-    }
-    return nil
   }
 
   private static func int(from value: Any?) -> Int? {

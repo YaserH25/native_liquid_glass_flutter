@@ -8,6 +8,7 @@ struct LiquidGlassSurfaceConfiguration {
   let intensity: String
   let cornerStyle: String
   let isDark: Bool
+  let environment: LiquidGlassEnvironmentConfiguration
   let role: String
   let nativePolicy: String
 
@@ -23,7 +24,9 @@ struct LiquidGlassSurfaceConfiguration {
     self.interactive = map["interactive"] as? Bool ?? false
     self.intensity = map["intensity"] as? String ?? "regular"
     self.cornerStyle = map["cornerStyle"] as? String ?? "all"
-    self.isDark = map["isDark"] as? Bool ?? false
+    let environment = LiquidGlassEnvironmentConfiguration(arguments: map)
+    self.environment = environment
+    self.isDark = environment.isDark
     self.role = map["role"] as? String ?? "content"
     self.nativePolicy = map["nativePolicy"] as? String ?? "automatic"
   }

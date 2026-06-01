@@ -1,12 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:native_liquid_glass_flutter/native_liquid_glass_flutter.dart';
 
+import 'environment_showcase.dart';
 import 'example_section.dart';
 import 'navigation_showcase.dart';
 import 'showcase_list.dart';
 
 class ConfigurationShowcase extends StatefulWidget {
-  const ConfigurationShowcase({super.key});
+  const ConfigurationShowcase({
+    super.key,
+    this.textDirection = TextDirection.ltr,
+    this.locale = const Locale('en'),
+    this.onTextDirectionChanged,
+    this.onLocaleChanged,
+  });
+
+  final TextDirection textDirection;
+  final Locale locale;
+  final ValueChanged<TextDirection>? onTextDirectionChanged;
+  final ValueChanged<Locale>? onLocaleChanged;
 
   @override
   State<ConfigurationShowcase> createState() => ConfigurationShowcaseState();
@@ -30,6 +42,12 @@ class ConfigurationShowcaseState extends State<ConfigurationShowcase> {
 
     return ShowcaseList(
       children: <Widget>[
+        EnvironmentShowcase(
+          textDirection: widget.textDirection,
+          locale: widget.locale,
+          onTextDirectionChanged: widget.onTextDirectionChanged ?? (_) {},
+          onLocaleChanged: widget.onLocaleChanged ?? (_) {},
+        ),
         ExampleSection(
           title: 'Glass surface',
           children: <Widget>[

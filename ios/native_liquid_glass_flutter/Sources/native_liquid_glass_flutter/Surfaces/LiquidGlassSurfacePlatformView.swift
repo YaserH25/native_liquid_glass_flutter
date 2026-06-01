@@ -56,9 +56,7 @@ final class LiquidGlassSurfacePlatformView: NSObject, FlutterPlatformView {
 
     containerView.isOpaque = false
     containerView.backgroundColor = .clear
-    containerView.overrideUserInterfaceStyle = configuration.isDark
-      ? .dark
-      : .light
+    containerView.applyLiquidGlassEnvironment(configuration.environment)
     containerView.isUserInteractionEnabled = false
     containerView.layer.cornerRadius = configuration.resolvedCornerRadius
     containerView.layer.cornerCurve = .continuous
@@ -84,9 +82,7 @@ final class LiquidGlassSurfacePlatformView: NSObject, FlutterPlatformView {
     effectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     effectView.isOpaque = false
     effectView.isUserInteractionEnabled = false
-    effectView.overrideUserInterfaceStyle = configuration.isDark
-      ? .dark
-      : .light
+    effectView.applyLiquidGlassEnvironment(configuration.environment)
     effectView.backgroundColor = configuration.tintColor.withAlphaComponent(
       configuration.tintOpacity
     )
@@ -104,7 +100,7 @@ final class LiquidGlassSurfacePlatformView: NSObject, FlutterPlatformView {
 
     hostingContainer.install(
       rootView: LiquidGlassSwiftUISurface(configuration: configuration),
-      isDark: configuration.isDark
+      environment: configuration.environment
     )
   }
 

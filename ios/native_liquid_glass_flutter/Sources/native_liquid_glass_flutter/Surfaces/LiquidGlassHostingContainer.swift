@@ -21,13 +21,16 @@ final class LiquidGlassHostingContainer<Content: View>: UIView {
     uninstall()
   }
 
-  func install(rootView: Content, isDark: Bool) {
+  func install(
+    rootView: Content,
+    environment: LiquidGlassEnvironmentConfiguration
+  ) {
     if let hostingController {
       hostingController.rootView = rootView
-      configureHostedView(hostingController.view, isDark: isDark)
+      configureHostedView(hostingController.view, environment: environment)
     } else {
       let hostingController = UIHostingController(rootView: rootView)
-      configureHostedView(hostingController.view, isDark: isDark)
+      configureHostedView(hostingController.view, environment: environment)
       self.hostingController = hostingController
     }
 
@@ -121,12 +124,15 @@ final class LiquidGlassHostingContainer<Content: View>: UIView {
     parentViewController = nil
   }
 
-  private func configureHostedView(_ view: UIView, isDark: Bool) {
+  private func configureHostedView(
+    _ view: UIView,
+    environment: LiquidGlassEnvironmentConfiguration
+  ) {
     view.translatesAutoresizingMaskIntoConstraints = false
     view.isOpaque = false
     view.isUserInteractionEnabled = false
     view.backgroundColor = .clear
-    view.overrideUserInterfaceStyle = isDark ? .dark : .light
+    view.applyLiquidGlassEnvironment(environment)
   }
 
   private func nearestParentViewController() -> UIViewController? {

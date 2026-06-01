@@ -41,6 +41,18 @@ contract. Every new key or method must be covered by:
 - Swift parser/unit test where parsing is non-trivial
 - iOS host build
 
+Every native platform-view configuration that depends on inherited Flutter
+state must include the shared environment fields:
+- `isDark`
+- `isRtl`
+- `locale`
+
+Swift views must apply those fields to `overrideUserInterfaceStyle`,
+`semanticContentAttribute`, and `accessibilityLanguage` where UIKit exposes the
+property. This keeps mounted native views aligned with app theme, text
+direction, language, and VoiceOver pronunciation when Flutter rebuilds inherited
+state.
+
 ## Native Component Addition Rule
 
 Every new native component must follow the package bridge pattern:
@@ -108,7 +120,7 @@ Before release:
 - `flutter analyze`
 - package widget/unit tests
 - example widget tests
-- iOS `xcodebuild test`
+- iOS host `xcodebuild build-for-testing` on the current simulator
 - simulator smoke test for native controls and overlays
 - leak/performance pass for repeated platform-view creation/disposal
 

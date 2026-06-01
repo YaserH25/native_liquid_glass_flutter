@@ -165,22 +165,15 @@ final class LiquidGlassMenuButtonPlatformView: NSObject, FlutterPlatformView {
     let tintColor = LiquidGlassSurfaceConfiguration.color(
       from: map["tintColor"] as? NSNumber
     )
-    let isDark = LiquidGlassMenuButtonConfiguration.bool(from: map["isDark"]) ?? false
-    let isRtl = LiquidGlassMenuButtonConfiguration.bool(from: map["isRtl"]) ?? false
+    let environment = LiquidGlassEnvironmentConfiguration(arguments: map)
 
-    containerView.overrideUserInterfaceStyle = isDark ? .dark : .light
-    containerView.semanticContentAttribute = isRtl
-      ? .forceRightToLeft
-      : .forceLeftToRight
+    containerView.applyLiquidGlassEnvironment(environment)
 
     button.isEnabled =
       LiquidGlassMenuButtonConfiguration.bool(from: map["enabled"]) ?? true
     button.tintColor = tintColor
     button.accessibilityLabel = menuConfiguration.title
-    button.overrideUserInterfaceStyle = isDark ? .dark : .light
-    button.semanticContentAttribute = isRtl
-      ? .forceRightToLeft
-      : .forceLeftToRight
+    button.applyLiquidGlassEnvironment(environment)
 
     applyButtonStyle(configuration: menuConfiguration, tintColor: tintColor)
     installMenu(map: map, configuration: menuConfiguration)

@@ -5,6 +5,7 @@ import '../config/liquid_glass_theme.dart';
 import '../overlays/liquid_glass_action.dart';
 import '../overlays/liquid_glass_option_picker.dart';
 import '../platform/liquid_glass_bridge_keys.dart';
+import '../platform/liquid_glass_environment.dart';
 import '../platform/liquid_glass_native_gestures.dart';
 import '../platform/liquid_glass_native_policy.dart';
 import '../platform/liquid_glass_native_view_channel.dart';
@@ -193,7 +194,6 @@ class LiquidGlassMenuButtonState extends State<LiquidGlassMenuButton> {
 
   Map<String, Object?> platformConfiguration() {
     final theme = LiquidGlassTheme.of(context);
-    final materialTheme = Theme.of(context);
 
     return <String, Object?>{
       LiquidGlassBridgeKeys.title: widget.title,
@@ -207,9 +207,7 @@ class LiquidGlassMenuButtonState extends State<LiquidGlassMenuButton> {
       LiquidGlassBridgeKeys.showsTitle: widget.showTitle,
       LiquidGlassBridgeKeys.tintColor: (widget.tintColor ?? theme.accentColor)
           .toARGB32(),
-      LiquidGlassBridgeKeys.isDark: materialTheme.brightness == Brightness.dark,
-      LiquidGlassBridgeKeys.isRtl:
-          Directionality.of(context) == TextDirection.rtl,
+      ...liquidGlassEnvironmentConfiguration(context),
     };
   }
 

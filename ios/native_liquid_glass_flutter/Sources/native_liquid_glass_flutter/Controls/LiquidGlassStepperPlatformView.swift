@@ -42,6 +42,9 @@ final class LiquidGlassStepperPlatformView: NSObject, FlutterPlatformView {
 
   private func configure(arguments: Any?) {
     let map = arguments as? [String: Any] ?? [:]
+    control.applyLiquidGlassEnvironment(
+      LiquidGlassEnvironmentConfiguration(arguments: map)
+    )
     control.minimumValue = (map["min"] as? NSNumber)?.doubleValue ?? 0
     control.maximumValue = (map["max"] as? NSNumber)?.doubleValue ?? 100
     control.stepValue = (map["step"] as? NSNumber)?.doubleValue ?? 1

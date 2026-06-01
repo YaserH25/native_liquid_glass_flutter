@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../config/liquid_glass_configuration.dart';
 import '../config/liquid_glass_theme.dart';
 import '../platform/liquid_glass_bridge_keys.dart';
+import '../platform/liquid_glass_environment.dart';
 import '../platform/liquid_glass_native_view_channel.dart';
 import '../platform/liquid_glass_platform.dart';
 import 'liquid_glass_app_bar_action.dart';
@@ -138,12 +139,7 @@ class LiquidGlassNativeAppBarState extends State<LiquidGlassNativeAppBar> {
       LiquidGlassBridgeKeys.backgroundColor:
           (surfaceConfiguration.tintColor ?? materialTheme.colorScheme.surface)
               .toARGB32(),
-      LiquidGlassBridgeKeys.isRtl:
-          Directionality.of(context) == TextDirection.rtl,
-      LiquidGlassBridgeKeys.isDark: materialTheme.brightness == Brightness.dark,
-      LiquidGlassBridgeKeys.locale: Localizations.localeOf(
-        context,
-      ).toLanguageTag(),
+      ...liquidGlassEnvironmentConfiguration(context),
     };
   }
 }

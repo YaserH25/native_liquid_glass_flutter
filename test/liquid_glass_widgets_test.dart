@@ -868,6 +868,105 @@ void main() {
     }
   });
 
+  testWidgets(
+    'native components include direction and locale in bridge params',
+    (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      try {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Builder(
+              builder: (context) {
+                return Localizations.override(
+                  context: context,
+                  locale: const Locale('ar'),
+                  child: Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: Scaffold(
+                      body: Column(
+                        children: <Widget>[
+                          const LiquidGlassSurface(
+                            configuration: LiquidGlassConfiguration(
+                              nativePolicy: LiquidGlassNativePolicy.native,
+                            ),
+                            child: Text('surface'),
+                          ),
+                          LiquidGlassSlider(
+                            value: 0.4,
+                            nativePolicy: LiquidGlassNativePolicy.native,
+                            onChanged: (_) {},
+                          ),
+                          LiquidGlassSwitch(
+                            value: true,
+                            nativePolicy: LiquidGlassNativePolicy.native,
+                            onChanged: (_) {},
+                          ),
+                          LiquidGlassSegmentedControl(
+                            selectedIndex: 0,
+                            nativePolicy: LiquidGlassNativePolicy.native,
+                            onChanged: (_) {},
+                            segments: const <LiquidGlassSegment>[
+                              LiquidGlassSegment(label: 'One'),
+                              LiquidGlassSegment(label: 'Two'),
+                            ],
+                          ),
+                          LiquidGlassStepper(
+                            value: 1,
+                            nativePolicy: LiquidGlassNativePolicy.native,
+                            onChanged: (_) {},
+                          ),
+                          LiquidGlassMenuButton(
+                            title: 'Density',
+                            value: 'comfortable',
+                            nativePolicy: LiquidGlassNativePolicy.native,
+                            onChanged: (_) {},
+                            options: const <LiquidGlassAction>[
+                              LiquidGlassAction(
+                                title: 'Compact',
+                                value: 'compact',
+                              ),
+                              LiquidGlassAction(
+                                title: 'Comfortable',
+                                value: 'comfortable',
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+
+        final viewsByType = <String, UiKitView>{
+          for (final view in tester.widgetList<UiKitView>(
+            find.byType(UiKitView),
+          ))
+            view.viewType: view,
+        };
+
+        for (final viewType in <String>[
+          LiquidGlassPlatform.surfaceViewType,
+          LiquidGlassPlatform.sliderViewType,
+          LiquidGlassPlatform.switchViewType,
+          LiquidGlassPlatform.segmentedControlViewType,
+          LiquidGlassPlatform.stepperViewType,
+          LiquidGlassPlatform.menuButtonViewType,
+        ]) {
+          final params =
+              viewsByType[viewType]!.creationParams as Map<Object?, Object?>;
+          expect(params['isRtl'], isTrue, reason: viewType);
+          expect(params['locale'], 'ar', reason: viewType);
+        }
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    },
+  );
+
   testWidgets('menu button can opt into native UIMenu view on iOS', (
     tester,
   ) async {

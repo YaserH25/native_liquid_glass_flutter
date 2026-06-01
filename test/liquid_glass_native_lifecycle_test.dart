@@ -371,6 +371,98 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     }
   });
+
+  testWidgets('native components resync after direction and locale changes', (
+    tester,
+  ) async {
+    final channels = <MethodChannel, List<MethodCall>>{
+      const MethodChannel('native_liquid_glass_flutter/surface_1'):
+          <MethodCall>[],
+      const MethodChannel('native_liquid_glass_flutter/slider_1'):
+          <MethodCall>[],
+      const MethodChannel('native_liquid_glass_flutter/switch_1'):
+          <MethodCall>[],
+      const MethodChannel('native_liquid_glass_flutter/segmented_1'):
+          <MethodCall>[],
+      const MethodChannel('native_liquid_glass_flutter/stepper_1'):
+          <MethodCall>[],
+      const MethodChannel('native_liquid_glass_flutter/menu_button/1'):
+          <MethodCall>[],
+    };
+
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    for (final entry in channels.entries) {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(entry.key, (call) async {
+            entry.value.add(call);
+            return null;
+          });
+    }
+
+    try {
+      await tester.pumpWidget(
+        _nativeComponentsApp(
+          seedColor: Colors.teal,
+          locale: const Locale('en'),
+          textDirection: TextDirection.ltr,
+        ),
+      );
+
+      tester
+          .state<LiquidGlassSurfaceBackdropState>(
+            find.byType(LiquidGlassSurfaceBackdrop),
+          )
+          .configureChannel(1);
+      tester
+          .state<LiquidGlassSliderState>(find.byType(LiquidGlassSlider))
+          .configureChannel(1);
+      tester
+          .state<LiquidGlassSwitchState>(find.byType(LiquidGlassSwitch))
+          .configureChannel(1);
+      tester
+          .state<LiquidGlassSegmentedControlState>(
+            find.byType(LiquidGlassSegmentedControl),
+          )
+          .configureChannel(1);
+      tester
+          .state<LiquidGlassStepperState>(find.byType(LiquidGlassStepper))
+          .configureChannel(1);
+      tester
+          .state<LiquidGlassMenuButtonState>(find.byType(LiquidGlassMenuButton))
+          .configureChannel(1);
+      await tester.pump();
+
+      for (final calls in channels.values) {
+        calls.clear();
+      }
+
+      await tester.pumpWidget(
+        _nativeComponentsApp(
+          seedColor: Colors.teal,
+          locale: const Locale('ar'),
+          textDirection: TextDirection.rtl,
+        ),
+      );
+      await tester.pump();
+
+      for (final entry in channels.entries) {
+        final configurationCalls = entry.value
+            .where((call) => call.method == 'setConfiguration')
+            .toList();
+        expect(configurationCalls, isNotEmpty, reason: entry.key.name);
+        final configuration =
+            configurationCalls.last.arguments as Map<Object?, Object?>;
+        expect(configuration['isRtl'], isTrue, reason: entry.key.name);
+        expect(configuration['locale'], 'ar', reason: entry.key.name);
+      }
+    } finally {
+      for (final channel in channels.keys) {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null);
+      }
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
 }
 
 Widget _nativeSliderApp(Color seedColor) {
@@ -450,6 +542,79 @@ Widget _nativeMenuButtonApp(Color seedColor) {
         LiquidGlassAction(title: 'Comfortable', value: 'comfortable'),
       ],
       onChanged: (_) {},
+    ),
+  );
+}
+
+Widget _nativeComponentsApp({
+  required Color seedColor,
+  required Locale locale,
+  required TextDirection textDirection,
+}) {
+  return MaterialApp(
+    home: Builder(
+      builder: (context) {
+        return Localizations.override(
+          context: context,
+          locale: locale,
+          child: Directionality(
+            textDirection: textDirection,
+            child: LiquidGlassTheme(
+              data: LiquidGlassThemeData.fromColorScheme(
+                ColorScheme.fromSeed(seedColor: seedColor),
+              ),
+              child: Scaffold(
+                body: Column(
+                  children: <Widget>[
+                    const LiquidGlassSurface(
+                      configuration: LiquidGlassConfiguration(
+                        nativePolicy: LiquidGlassNativePolicy.native,
+                      ),
+                      child: Text('surface'),
+                    ),
+                    LiquidGlassSlider(
+                      value: 0.5,
+                      nativePolicy: LiquidGlassNativePolicy.native,
+                      onChanged: (_) {},
+                    ),
+                    LiquidGlassSwitch(
+                      value: true,
+                      nativePolicy: LiquidGlassNativePolicy.native,
+                      onChanged: (_) {},
+                    ),
+                    LiquidGlassSegmentedControl(
+                      selectedIndex: 0,
+                      nativePolicy: LiquidGlassNativePolicy.native,
+                      onChanged: (_) {},
+                      segments: const <LiquidGlassSegment>[
+                        LiquidGlassSegment(label: 'One'),
+                        LiquidGlassSegment(label: 'Two'),
+                      ],
+                    ),
+                    LiquidGlassStepper(
+                      value: 4,
+                      nativePolicy: LiquidGlassNativePolicy.native,
+                      onChanged: (_) {},
+                    ),
+                    LiquidGlassMenuButton(
+                      title: 'Density',
+                      value: 'compact',
+                      options: const <LiquidGlassAction>[
+                        LiquidGlassAction(title: 'Compact', value: 'compact'),
+                        LiquidGlassAction(
+                          title: 'Comfortable',
+                          value: 'comfortable',
+                        ),
+                      ],
+                      onChanged: (_) {},
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     ),
   );
 }

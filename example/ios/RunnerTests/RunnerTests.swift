@@ -459,7 +459,7 @@ class RunnerTests: XCTestCase {
       container.didMoveToWindow()
       container.install(
         rootView: LiquidGlassSwiftUISurface(configuration: configuration),
-        isDark: true
+        environment: configuration.environment
       )
 
       XCTAssertEqual(parent.children.count, 1)
@@ -480,7 +480,7 @@ class RunnerTests: XCTestCase {
 
       container.install(
         rootView: LiquidGlassSwiftUISurface(configuration: configuration),
-        isDark: false
+        environment: configuration.environment
       )
 
       XCTAssertFalse(container.subviews.isEmpty)

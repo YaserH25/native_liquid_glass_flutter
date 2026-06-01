@@ -157,6 +157,31 @@ void main() {
     }
   });
 
+  testWidgets('example exposes app direction and language controls', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const ExampleApp());
+
+    await tester.tap(find.text('Config'));
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('App environment'),
+      180,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Direction: LTR'), findsOneWidget);
+    expect(find.text('Language: English'), findsOneWidget);
+
+    await tester.tap(find.text('RTL').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Direction: RTL'), findsOneWidget);
+
+    await tester.tap(find.text('Arabic').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Language: Arabic'), findsOneWidget);
+  });
+
   testWidgets('navigation showcase uses native app and tab bars on iOS', (
     tester,
   ) async {

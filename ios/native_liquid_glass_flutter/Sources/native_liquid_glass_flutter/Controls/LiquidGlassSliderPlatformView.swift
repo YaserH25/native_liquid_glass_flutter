@@ -76,7 +76,9 @@ final class LiquidGlassSliderPlatformView: NSObject, FlutterPlatformView {
   private func configure(arguments: Any?, animated: Bool) {
     let map = arguments as? [String: Any] ?? [:]
     let configuration = LiquidGlassSliderConfiguration(arguments: map)
+    let environment = LiquidGlassEnvironmentConfiguration(arguments: map)
     let value = (map["value"] as? NSNumber)?.floatValue ?? slider.value
+    slider.applyLiquidGlassEnvironment(environment)
     slider.minimumValue = (map["min"] as? NSNumber)?.floatValue ?? 0
     slider.maximumValue = (map["max"] as? NSNumber)?.floatValue ?? 1
     slider.isEnabled = map["enabled"] as? Bool ?? true
