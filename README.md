@@ -23,7 +23,7 @@ and configuration changes.
 
 ```yaml
 dependencies:
-  native_liquid_glass_flutter: ^0.0.2
+  native_liquid_glass_flutter: ^0.0.3
 ```
 
 ## Quick Start
@@ -732,27 +732,27 @@ The package follows the current Flutter plugin model and iOS availability gates:
 - UIKit `UIButton.showsMenuAsPrimaryAction`:
   https://developer.apple.com/documentation/uikit/uibutton/showsmenuasprimaryaction
 
-[environment-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-environment.png
-[rtl-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-rtl-language.png
-[surface-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-surface.png
-[app-bar-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-app-bar.png
-[tab-bar-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-tab-bar.png
-[button-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-button.png
-[slider-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-slider.png
-[slider-endpoints-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-slider-endpoints.png
-[switch-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-switch.png
-[segmented-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-segmented-control.png
-[stepper-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-stepper.png
-[uimenu-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-uimenu.png
-[uimenu-open-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-uimenu-open.png
-[pull-down-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-pull-down-button.png
-[action-menu-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-action-menu-button.png
-[grouped-menu-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-grouped-command-menu.png
-[pull-down-slider-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-pull-down-slider.png
-[bottom-sheet-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-bottom-sheet.png
-[alert-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-alert.png
-[action-sheet-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-action-sheet.png
-[option-picker-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-option-picker.png
-[date-picker-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-date-picker.png
-[time-picker-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-time-picker.png
-[share-sheet-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-share-sheet.png
+[environment-img]: doc/screenshots/components/liquid-glass-environment.png
+[rtl-img]: doc/screenshots/components/liquid-glass-rtl-language.png
+[surface-img]: doc/screenshots/components/liquid-glass-surface.png
+[app-bar-img]: doc/screenshots/components/liquid-glass-app-bar.png
+[tab-bar-img]: doc/screenshots/components/liquid-glass-tab-bar.png
+[button-img]: doc/screenshots/components/liquid-glass-button.png
+[slider-img]: doc/screenshots/components/liquid-glass-slider.png
+[slider-endpoints-img]: doc/screenshots/components/liquid-glass-slider-endpoints.png
+[switch-img]: doc/screenshots/components/liquid-glass-switch.png
+[segmented-img]: doc/screenshots/components/liquid-glass-segmented-control.png
+[stepper-img]: doc/screenshots/components/liquid-glass-stepper.png
+[uimenu-img]: doc/screenshots/components/liquid-glass-uimenu.png
+[uimenu-open-img]: doc/screenshots/components/liquid-glass-uimenu-open.png
+[pull-down-img]: doc/screenshots/components/liquid-glass-pull-down-button.png
+[action-menu-img]: doc/screenshots/components/liquid-glass-action-menu-button.png
+[grouped-menu-img]: doc/screenshots/components/liquid-glass-grouped-command-menu.png
+[pull-down-slider-img]: doc/screenshots/components/liquid-glass-pull-down-slider.png
+[bottom-sheet-img]: doc/screenshots/components/liquid-glass-bottom-sheet.png
+[alert-img]: doc/screenshots/components/liquid-glass-alert.png
+[action-sheet-img]: doc/screenshots/components/liquid-glass-action-sheet.png
+[option-picker-img]: doc/screenshots/components/liquid-glass-option-picker.png
+[date-picker-img]: doc/screenshots/components/liquid-glass-date-picker.png
+[time-picker-img]: doc/screenshots/components/liquid-glass-time-picker.png
+[share-sheet-img]: doc/screenshots/components/liquid-glass-share-sheet.png

@@ -1,3 +1,8 @@
+## 0.0.3
+
+* Switched README screenshot links to package-relative paths so pub.dev can
+  serve the images from the published package archive.
+
 ## 0.0.2
 
 * Updated the public README for pub.dev with absolute screenshot links for each
