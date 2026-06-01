@@ -1,3 +1,8 @@
+## 0.0.4
+
+* Restored absolute raw GitHub screenshot URLs now that the repository is public,
+  so images render inside the pub.dev README.
+
 ## 0.0.3
 
 * Switched README screenshot links to package-relative paths so pub.dev can
