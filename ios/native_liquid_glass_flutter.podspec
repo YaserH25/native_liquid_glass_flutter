@@ -11,7 +11,7 @@ Native iOS Liquid Glass surfaces, UIKit system overlays, and adaptive Flutter fa
                        DESC
   s.homepage         = 'https://github.com/YaserH25/native_liquid_glass_flutter'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'native_liquid_glass_flutter' => 'maintainer@example.com' }
+  s.author           = { 'Yaser Hesham' => 'https://github.com/YaserH25' }
   s.source           = { :path => '.' }
   s.source_files = 'native_liquid_glass_flutter/Sources/native_liquid_glass_flutter/**/*'
   s.dependency 'Flutter'
@@ -19,11 +19,11 @@ Native iOS Liquid Glass surfaces, UIKit system overlays, and adaptive Flutter fa
 
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
-  s.swift_version = '5.0'
+  s.swift_version = '5.9'
 
-  # If your plugin requires a privacy manifest, for example if it uses any
-  # required reason APIs, update the PrivacyInfo.xcprivacy file to describe your
-  # plugin's privacy impact, and then uncomment this line. For more information,
-  # see https://developer.apple.com/documentation/bundleresources/privacy_manifest_files
-  # s.resource_bundles = {'native_liquid_glass_flutter_privacy' => ['native_liquid_glass_flutter/Sources/native_liquid_glass_flutter/PrivacyInfo.xcprivacy']}
+  s.resource_bundles = {
+    'native_liquid_glass_flutter_privacy' => [
+      'native_liquid_glass_flutter/Sources/native_liquid_glass_flutter/PrivacyInfo.xcprivacy'
+    ]
+  }
 end

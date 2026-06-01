@@ -1,8 +1,10 @@
 name: native_liquid_glass_flutter
-description: Native iOS Liquid Glass surfaces, overlays, and adaptive Flutter fallbacks.
+description: Native iOS Liquid Glass surfaces, controls, overlays, menus, and adaptive Flutter fallbacks for Flutter apps.
 version: 0.0.1
+homepage: https://github.com/YaserH25/native_liquid_glass_flutter
 repository: https://github.com/YaserH25/native_liquid_glass_flutter
 issue_tracker: https://github.com/YaserH25/native_liquid_glass_flutter/issues
+documentation: https://github.com/YaserH25/native_liquid_glass_flutter#readme
 topics:
   - ios
   - liquid-glass

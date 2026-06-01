@@ -557,7 +557,7 @@ Important knobs:
 ## Architecture
 
 For lifecycle rules, dependency direction, bridge contracts, and background
-execution posture, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+execution posture, see [doc/ARCHITECTURE.md](doc/ARCHITECTURE.md).
 
 The package is split by responsibility:
 
@@ -687,11 +687,15 @@ flutter test
 cd example
 flutter test
 flutter build ios --simulator
+cd ..
+flutter pub publish --dry-run
 ```
 
 Then update:
 
-- `pubspec.yaml` homepage, repository, issue tracker, and topics.
-- `ios/native_liquid_glass_flutter.podspec` author, homepage, summary.
+- `pubspec.yaml` homepage, repository, issue tracker, documentation, and topics.
+- `ios/native_liquid_glass_flutter.podspec` author, homepage, summary, and
+  Swift version.
 - `CHANGELOG.md` with the release notes.
 - `LICENSE` with the intended package license.
+- `.pubignore` so internal planning files and generated output are not shipped.

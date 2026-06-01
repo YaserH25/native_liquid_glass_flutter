@@ -1,6 +1,7 @@
 name: native_liquid_glass_flutter_example
 description: Demonstrates how to use native_liquid_glass_flutter.
 publish_to: none
+version: 0.0.1+1
 
 environment:
   sdk: ^3.12.0
