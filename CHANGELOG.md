@@ -1,3 +1,10 @@
+## 0.0.2
+
+* Updated the public README for pub.dev with absolute screenshot links for each
+  component showcase.
+* Added pub.dev screenshot metadata.
+* Removed internal setup and publishing-only content from the package README.
+
 ## 0.0.1
 
 * Initial plugin package with native iOS Liquid Glass surfaces and adaptive
