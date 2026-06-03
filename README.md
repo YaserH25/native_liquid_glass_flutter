@@ -132,12 +132,9 @@ class HomePage extends StatelessWidget {
 
 ## Visual Tour
 
-The README uses motion for the controls and presenters where behavior matters.
-Static screenshots are kept only for layout, navigation, pickers, and menu
-variants where a still frame is clearer. Regenerate the GIFs from a booted iOS
-simulator with `fvm dart run tool/record_component_gifs.dart`.
-
-### Interactions
+The README uses simulator-recorded GIFs for the controls and presenters where
+behavior matters. Regenerate the GIFs from a booted iOS simulator with
+`fvm dart run tool/record_component_gifs.dart`.
 
 | Component or API | Motion |
 | --- | --- |
@@ -151,27 +148,6 @@ simulator with `fvm dart run tool/record_component_gifs.dart`.
 | `showLiquidGlassActionSheet` presentation | ![showLiquidGlassActionSheet interaction][action-sheet-gif] |
 | `LiquidGlassMenuButton` native `UIMenu` | ![LiquidGlassMenuButton interaction][menu-gif] |
 | `LiquidGlassPullDownButton` command menu | ![LiquidGlassPullDownButton interaction][pull-down-gif] |
-
-### Static Reference
-
-`Directionality`, `Localizations.localeOf`, and `Theme` are sent through the
-native bridge. Mounted UIKit views resync when the app changes theme, text
-direction, or locale.
-
-| Area | Screenshot |
-| --- | --- |
-| Environment controls | ![Environment controls][environment-img] |
-| RTL and Arabic locale | ![RTL and Arabic locale][rtl-img] |
-| `LiquidGlassSurface` | ![LiquidGlassSurface][surface-img] |
-| `LiquidGlassAppBar` | ![LiquidGlassAppBar][app-bar-img] |
-| `LiquidGlassTabBar` | ![LiquidGlassTabBar][tab-bar-img] |
-| Icon action menu | ![Icon action menu][action-menu-img] |
-| Grouped command menu | ![Grouped command menu][grouped-menu-img] |
-| Pull-down command opening a native slider sheet | ![Pull-down slider command][pull-down-slider-img] |
-| `showLiquidGlassOptionPicker` | ![showLiquidGlassOptionPicker][option-picker-img] |
-| `showLiquidGlassDatePicker` | ![showLiquidGlassDatePicker][date-picker-img] |
-| `showLiquidGlassTimePicker` | ![showLiquidGlassTimePicker][time-picker-img] |
-| `showLiquidGlassShareSheet` | ![showLiquidGlassShareSheet][share-sheet-img] |
 
 ## Widgets
 
@@ -706,16 +682,3 @@ The package follows the current Flutter plugin model and iOS availability gates:
 [liquid-glass-flutter-pkg]: https://pub.dev/packages/liquid_glass_flutter
 [flutter-liquid-glass-pkg]: https://pub.dev/packages/flutter_liquid_glass
 [glass-pkg]: https://pub.dev/packages/glass
-
-[environment-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-environment.png
-[rtl-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-rtl-language.png
-[surface-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-surface.png
-[app-bar-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-app-bar.png
-[tab-bar-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-tab-bar.png
-[action-menu-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-action-menu-button.png
-[grouped-menu-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-grouped-command-menu.png
-[pull-down-slider-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-pull-down-slider.png
-[option-picker-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-option-picker.png
-[date-picker-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-date-picker.png
-[time-picker-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-time-picker.png
-[share-sheet-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-share-sheet.png

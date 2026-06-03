@@ -12,24 +12,26 @@ topics:
   - ui
 
 screenshots:
-  - description: Native Liquid Glass surface.
-    path: doc/screenshots/components/liquid-glass-surface.png
-  - description: Native iOS app bar.
-    path: doc/screenshots/components/liquid-glass-app-bar.png
-  - description: Native iOS tab bar.
-    path: doc/screenshots/components/liquid-glass-tab-bar.png
+  - description: Native Liquid Glass button motion.
+    path: doc/screenshots/gifs/liquid-glass-button.gif
   - description: Native iOS slider motion.
     path: doc/screenshots/gifs/liquid-glass-slider.gif
-  - description: Native iOS UIMenu motion.
-    path: doc/screenshots/gifs/liquid-glass-menu.gif
-  - description: Native pull-down menu motion.
-    path: doc/screenshots/gifs/liquid-glass-pull_down.gif
+  - description: Native iOS slider endpoint motion.
+    path: doc/screenshots/gifs/liquid-glass-slider_endpoints.gif
+  - description: Native iOS switch motion.
+    path: doc/screenshots/gifs/liquid-glass-switch.gif
+  - description: Native iOS segmented control and stepper motion.
+    path: doc/screenshots/gifs/liquid-glass-segmented_stepper.gif
   - description: Native bottom sheet motion.
     path: doc/screenshots/gifs/liquid-glass-sheet.gif
   - description: Native alert motion.
     path: doc/screenshots/gifs/liquid-glass-alert.gif
-  - description: RTL and Arabic locale support.
-    path: doc/screenshots/components/liquid-glass-rtl-language.png
+  - description: Native action sheet motion.
+    path: doc/screenshots/gifs/liquid-glass-action_sheet.gif
+  - description: Native iOS UIMenu motion.
+    path: doc/screenshots/gifs/liquid-glass-menu.gif
+  - description: Native pull-down menu motion.
+    path: doc/screenshots/gifs/liquid-glass-pull_down.gif
 
 environment:
   sdk: ^3.12.0
