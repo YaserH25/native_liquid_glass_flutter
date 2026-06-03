@@ -54,7 +54,7 @@ a visual package such as [`cupertino_liquid_glass`][cupertino-liquid-glass-pkg],
 
 ```yaml
 dependencies:
-  native_liquid_glass_flutter: ^0.0.6
+  native_liquid_glass_flutter: ^0.0.7
 ```
 
 ## Quick Start

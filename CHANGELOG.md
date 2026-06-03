@@ -1,3 +1,9 @@
+## 0.0.7
+
+* Removed the remaining static screenshot references from the README and package
+  screenshot metadata.
+* Switched pub.dev package screenshots to the animated GIF set only.
+
 ## 0.0.6
 
 * Reworked the README media gallery to use GIFs for interactive components and
