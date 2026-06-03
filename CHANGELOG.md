@@ -1,3 +1,10 @@
+## 0.0.6
+
+* Reworked the README media gallery to use GIFs for interactive components and
+  keep static screenshots only for layout, navigation, pickers, and menu
+  variants.
+* Removed duplicate static screenshots that were replaced by animated GIFs.
+
 ## 0.0.5
 
 * Added simulator-recorded animated GIFs for native controls, menus, and
