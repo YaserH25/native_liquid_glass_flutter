@@ -19,11 +19,42 @@ sliders, switches, segmented controls, steppers, menus, pull-down buttons,
 sheets, alerts, action sheets, option pickers, date/time pickers, share sheets,
 and configuration changes.
 
+## Why This Package
+
+Most Flutter glass packages are visual effects. They wrap widgets with
+`BackdropFilter`, custom painters, or shaders to approximate glass, blur,
+refraction, droplets, or Liquid Glass-style highlights. That is useful for
+decorative cards and cross-platform effects, but it does not make iOS own the
+controls, menus, safe areas, modal presenters, accessibility behavior, or system
+chrome.
+
+`native_liquid_glass_flutter` is built for apps that want Flutter to keep app
+state while iOS renders the surfaces and controls that should feel native.
+
+| Need | Visual-only glass packages | `native_liquid_glass_flutter` |
+| --- | --- | --- |
+| iOS 26 Liquid Glass | Usually a Dart-rendered approximation with blur, shaders, or highlights | Uses SwiftUI `glassEffect` on iOS 26+ |
+| Older iOS support | Usually the same Flutter effect on every iOS version | Uses UIKit `UIVisualEffectView` material on iOS 13-25 |
+| Native iOS controls | Usually custom Flutter widgets that look glassy | Optional `UISlider`, `UISwitch`, `UISegmentedControl`, `UIStepper`, `UIButton`, `UIMenu`, and `UITabBar` |
+| Native presenters | Often not included, or implemented as Flutter dialogs/sheets | `UIAlertController`, `UIDatePicker`, `UIActivityViewController`, and package glass fallbacks |
+| Cross-platform behavior | Often applies the same glass language everywhere | Keeps Android, desktop, web, and tests on Flutter-rendered fallbacks |
+| Flutter state ownership | Usually pure Flutter visual wrappers | Flutter remains the source of truth; native views report actions back through channels |
+| Environment sync | Varies by package | Theme, direction, locale, labels, disabled state, and values resync into mounted native views |
+
+Use this package when the goal is not just "make a frosted card," but "make an
+iOS screen feel like iOS while the app remains Flutter." If you only need a
+shader effect, water-droplet distortion, or a lightweight Dart-only glass card,
+a visual package such as [`cupertino_liquid_glass`][cupertino-liquid-glass-pkg],
+[`oc_liquid_glass`][oc-liquid-glass-pkg],
+[`liquid_glass_flutter`][liquid-glass-flutter-pkg],
+[`flutter_liquid_glass`][flutter-liquid-glass-pkg], or
+[`glass`][glass-pkg] may be a better fit.
+
 ## Installation
 
 ```yaml
 dependencies:
-  native_liquid_glass_flutter: ^0.0.4
+  native_liquid_glass_flutter: ^0.0.5
 ```
 
 ## Quick Start
@@ -98,6 +129,25 @@ class HomePage extends StatelessWidget {
 | `showLiquidGlassDatePicker` | `UIDatePicker` in native action sheet | Flutter `showDatePicker` |
 | `showLiquidGlassTimePicker` | `UIDatePicker` in native action sheet | Flutter `showTimePicker` |
 | `showLiquidGlassShareSheet` | `UIActivityViewController` | Snackbar fallback |
+
+## Animated Interaction GIFs
+
+Small simulator-recorded GIFs show the package interactions in motion. Regenerate
+them from a booted iOS simulator with
+`fvm dart run tool/record_component_gifs.dart`.
+
+| Interaction | GIF |
+| --- | --- |
+| Button presses | ![LiquidGlassButton interaction][button-gif] |
+| Native slider drag | ![LiquidGlassSlider interaction][slider-gif] |
+| Endpoint slider drag | ![LiquidGlassSlider endpoint interaction][slider-endpoints-gif] |
+| Native switch toggle | ![LiquidGlassSwitch interaction][switch-gif] |
+| Segmented control and stepper | ![LiquidGlassSegmentedControl and LiquidGlassStepper interaction][segmented-stepper-gif] |
+| Sheet presentation | ![showLiquidGlassSheet interaction][sheet-gif] |
+| Alert presentation | ![showLiquidGlassAlert interaction][alert-gif] |
+| Action sheet presentation | ![showLiquidGlassActionSheet interaction][action-sheet-gif] |
+| Native UIMenu | ![LiquidGlassMenuButton interaction][menu-gif] |
+| Pull-down command menu | ![LiquidGlassPullDownButton interaction][pull-down-gif] |
 
 ## Component Gallery
 
@@ -743,6 +793,23 @@ The package follows the current Flutter plugin model and iOS availability gates:
   https://developer.apple.com/documentation/uikit/uimenu
 - UIKit `UIButton.showsMenuAsPrimaryAction`:
   https://developer.apple.com/documentation/uikit/uibutton/showsmenuasprimaryaction
+
+[button-gif]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/gifs/liquid-glass-button.gif
+[slider-gif]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/gifs/liquid-glass-slider.gif
+[slider-endpoints-gif]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/gifs/liquid-glass-slider_endpoints.gif
+[switch-gif]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/gifs/liquid-glass-switch.gif
+[segmented-stepper-gif]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/gifs/liquid-glass-segmented_stepper.gif
+[sheet-gif]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/gifs/liquid-glass-sheet.gif
+[alert-gif]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/gifs/liquid-glass-alert.gif
+[action-sheet-gif]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/gifs/liquid-glass-action_sheet.gif
+[menu-gif]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/gifs/liquid-glass-menu.gif
+[pull-down-gif]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/gifs/liquid-glass-pull_down.gif
+
+[cupertino-liquid-glass-pkg]: https://pub.dev/packages/cupertino_liquid_glass
+[oc-liquid-glass-pkg]: https://pub.dev/packages/oc_liquid_glass
+[liquid-glass-flutter-pkg]: https://pub.dev/packages/liquid_glass_flutter
+[flutter-liquid-glass-pkg]: https://pub.dev/packages/flutter_liquid_glass
+[glass-pkg]: https://pub.dev/packages/glass
 
 [environment-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-environment.png
 [rtl-img]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/components/liquid-glass-rtl-language.png

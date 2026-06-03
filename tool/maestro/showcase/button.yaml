@@ -1,0 +1,12 @@
+appId: com.example.nativeLiquidGlassFlutterExample
+---
+- waitForAnimationToEnd:
+    timeout: 800
+- tapOn:
+    text: Primary
+- waitForAnimationToEnd:
+    timeout: 800
+- tapOn:
+    text: Secondary
+- waitForAnimationToEnd:
+    timeout: 800

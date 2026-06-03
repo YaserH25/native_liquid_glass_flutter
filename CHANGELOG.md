@@ -1,3 +1,11 @@
+## 0.0.5
+
+* Added simulator-recorded animated GIFs for native controls, menus, and
+  overlays.
+* Added a reusable Dart/Maestro GIF recording tool for the example gallery.
+* Expanded the README with a comparison against visual-only Flutter glass
+  packages.
+
 ## 0.0.4
 
 * Restored absolute raw GitHub screenshot URLs now that the repository is public,
