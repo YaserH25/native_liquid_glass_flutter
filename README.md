@@ -54,7 +54,7 @@ a visual package such as [`cupertino_liquid_glass`][cupertino-liquid-glass-pkg],
 
 ```yaml
 dependencies:
-  native_liquid_glass_flutter: ^0.0.7
+  native_liquid_glass_flutter: ^0.0.8
 ```
 
 ## Quick Start
@@ -143,6 +143,7 @@ behavior matters. Regenerate the GIFs from a booted iOS simulator with
 | `LiquidGlassSlider` endpoint symbols | ![LiquidGlassSlider endpoint interaction][slider-endpoints-gif] |
 | `LiquidGlassSwitch` toggle | ![LiquidGlassSwitch interaction][switch-gif] |
 | `LiquidGlassSegmentedControl` and `LiquidGlassStepper` | ![LiquidGlassSegmentedControl and LiquidGlassStepper interaction][segmented-stepper-gif] |
+| `LiquidGlassTabBar` tapping and horizontal drag | ![LiquidGlassTabBar interaction][tab-bar-gif] |
 | `showLiquidGlassSheet` presentation | ![showLiquidGlassSheet interaction][sheet-gif] |
 | `showLiquidGlassAlert` presentation | ![showLiquidGlassAlert interaction][alert-gif] |
 | `showLiquidGlassActionSheet` presentation | ![showLiquidGlassActionSheet interaction][action-sheet-gif] |
@@ -671,6 +672,7 @@ The package follows the current Flutter plugin model and iOS availability gates:
 [slider-endpoints-gif]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/gifs/liquid-glass-slider_endpoints.gif
 [switch-gif]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/gifs/liquid-glass-switch.gif
 [segmented-stepper-gif]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/gifs/liquid-glass-segmented_stepper.gif
+[tab-bar-gif]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/gifs/liquid-glass-tab_bar.gif
 [sheet-gif]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/gifs/liquid-glass-sheet.gif
 [alert-gif]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/gifs/liquid-glass-alert.gif
 [action-sheet-gif]: https://raw.githubusercontent.com/YaserH25/native_liquid_glass_flutter/main/doc/screenshots/gifs/liquid-glass-action_sheet.gif

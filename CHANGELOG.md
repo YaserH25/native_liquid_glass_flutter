@@ -1,3 +1,9 @@
+## 0.0.8
+
+* Added an animated `LiquidGlassTabBar` GIF that shows tab selection changes and
+  horizontal dragging across the native tab bar.
+* Added the tab bar GIF to the README and pub.dev screenshot metadata.
+
 ## 0.0.7
 
 * Removed the remaining static screenshot references from the README and package

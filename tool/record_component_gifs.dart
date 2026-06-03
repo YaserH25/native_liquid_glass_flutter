@@ -40,6 +40,12 @@ const List<ComponentRecording> _recordings = <ComponentRecording>[
     setupFlow: 'controls_segmented_stepper',
   ),
   ComponentRecording(
+    name: 'tab_bar',
+    crop: Crop(x: 83, y: 2265, width: 1040, height: 320),
+    width: 360,
+    playbackFps: 6,
+  ),
+  ComponentRecording(
     name: 'sheet',
     crop: Crop(x: 0, y: 0, width: 1206, height: 2622),
     width: 320,
