@@ -1,3 +1,14 @@
+## 0.0.9
+
+* Requires Flutter 3.47 (Dart 3.13) and iOS 15.0, matching Flutter 3.47's own
+  minimum iOS version. Builds with Xcode 27 and the iOS 27 SDK.
+* Removed the pre-iOS 15 code paths that the new minimum made unreachable.
+* The native `LiquidGlassTabBar` now updates its tab items in place when only
+  their labels, symbols, badges or enabled state change, instead of rebuilding
+  the bar on every configuration sync. The selection and its Liquid Glass lens
+  are kept, and the bar is only rebuilt when the number of tabs changes.
+* The native tab bar no longer reselects the tab that is already selected.
+
 ## 0.0.8
 
 * Added an animated `LiquidGlassTabBar` GIF that shows tab selection changes and
