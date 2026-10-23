@@ -146,7 +146,6 @@ final class LiquidGlassMenuButtonPlatformView: NSObject, FlutterPlatformView {
     button.translatesAutoresizingMaskIntoConstraints = false
     button.contentHorizontalAlignment = .fill
     button.titleLabel?.adjustsFontForContentSizeCategory = true
-    button.addTarget(self, action: #selector(fallbackTap), for: .touchUpInside)
 
     containerView.addSubview(button)
     NSLayoutConstraint.activate([
@@ -183,53 +182,30 @@ final class LiquidGlassMenuButtonPlatformView: NSObject, FlutterPlatformView {
     configuration menuConfiguration: LiquidGlassMenuButtonConfiguration,
     tintColor: UIColor
   ) {
-    if #available(iOS 15.0, *) {
-      var configuration = UIButton.Configuration.tinted()
-      let displayTitle = menuConfiguration.displayTitle
-      configuration.title = displayTitle.isEmpty ? nil : displayTitle
-      if let symbol = menuConfiguration.buttonImageSystemName {
-        configuration.image = UIImage(systemName: symbol)
-        configuration.imagePlacement = .leading
-        configuration.imagePadding = displayTitle.isEmpty ? 0 : 8
-      }
-      configuration.baseForegroundColor = tintColor
-      configuration.baseBackgroundColor = tintColor.withAlphaComponent(0.14)
-      configuration.cornerStyle = .capsule
-      configuration.contentInsets = NSDirectionalEdgeInsets(
-        top: 10,
-        leading: 16,
-        bottom: 10,
-        trailing: 16
-      )
-      button.configuration = configuration
-    } else {
-      let displayTitle = menuConfiguration.displayTitle
-      button.setTitle(displayTitle.isEmpty ? nil : displayTitle, for: .normal)
-      if let symbol = menuConfiguration.buttonImageSystemName {
-        button.setImage(UIImage(systemName: symbol), for: .normal)
-      } else {
-        button.setImage(nil, for: .normal)
-      }
-      button.setTitleColor(tintColor, for: .normal)
-      button.backgroundColor = tintColor.withAlphaComponent(0.14)
-      button.layer.cornerRadius = 20
-      button.contentEdgeInsets = UIEdgeInsets(
-        top: 10,
-        left: 16,
-        bottom: 10,
-        right: 16
-      )
+    var configuration = UIButton.Configuration.tinted()
+    let displayTitle = menuConfiguration.displayTitle
+    configuration.title = displayTitle.isEmpty ? nil : displayTitle
+    if let symbol = menuConfiguration.buttonImageSystemName {
+      configuration.image = UIImage(systemName: symbol)
+      configuration.imagePlacement = .leading
+      configuration.imagePadding = displayTitle.isEmpty ? 0 : 8
     }
+    configuration.baseForegroundColor = tintColor
+    configuration.baseBackgroundColor = tintColor.withAlphaComponent(0.14)
+    configuration.cornerStyle = .capsule
+    configuration.contentInsets = NSDirectionalEdgeInsets(
+      top: 10,
+      leading: 16,
+      bottom: 10,
+      trailing: 16
+    )
+    button.configuration = configuration
   }
 
   private func installMenu(
     map: [String: Any],
     configuration: LiquidGlassMenuButtonConfiguration
   ) {
-    guard #available(iOS 14.0, *) else {
-      return
-    }
-
     let title = map["title"] as? String ?? ""
     let selectedValue = map["value"] as? String
     let actions = LiquidGlassMenuButtonConfiguration.actionMaps(
@@ -243,26 +219,7 @@ final class LiquidGlassMenuButtonPlatformView: NSObject, FlutterPlatformView {
 
     button.menu = UIMenu(title: title, children: children)
     button.showsMenuAsPrimaryAction = true
-    if #available(iOS 15.0, *) {
-      button.changesSelectionAsPrimaryAction = configuration.tracksSelection
-    }
-  }
-
-  @objc private func fallbackTap() {
-    if #available(iOS 14.0, *) {
-      return
-    }
-
-    let actions = LiquidGlassMenuButtonConfiguration.actionMaps(
-      from: currentConfiguration["actions"]
-    )
-    guard let firstAction = actions.first,
-      let value = firstAction["value"] as? String
-    else {
-      return
-    }
-
-    select(value: value)
+    button.changesSelectionAsPrimaryAction = configuration.tracksSelection
   }
 
   private func select(value: String) {
@@ -277,7 +234,6 @@ final class LiquidGlassMenuButtonPlatformView: NSObject, FlutterPlatformView {
     channel.invokeMethod("onChanged", arguments: value)
   }
 
-  @available(iOS 14.0, *)
   private func menuChildren(
     actions: [LiquidGlassMenuActionConfiguration],
     selectedValue: String?,
@@ -330,7 +286,6 @@ final class LiquidGlassMenuButtonPlatformView: NSObject, FlutterPlatformView {
     return children
   }
 
-  @available(iOS 14.0, *)
   private func menuAction(
     _ action: LiquidGlassMenuActionConfiguration,
     selectedValue: String?,

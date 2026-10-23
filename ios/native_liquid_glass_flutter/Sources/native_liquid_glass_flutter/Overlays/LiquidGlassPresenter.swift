@@ -67,10 +67,7 @@ final class LiquidGlassPresenter: NSObject {
     datePicker.datePickerMode = .time
     datePicker.minuteInterval = max(1, min(30, minuteInterval))
     datePicker.date = date
-
-    if #available(iOS 13.4, *) {
-      datePicker.preferredDatePickerStyle = .wheels
-    }
+    datePicker.preferredDatePickerStyle = .wheels
 
     let alert = UIAlertController(title: title, message: "\n\n\n\n\n\n\n", preferredStyle: .actionSheet)
     let resultGuard = makeResultGuard(for: alert, result: result)
@@ -120,9 +117,7 @@ final class LiquidGlassPresenter: NSObject {
       datePicker.maximumDate = Date(timeIntervalSince1970: Double(maximumMilliseconds) / 1000.0)
     }
 
-    if #available(iOS 13.4, *) {
-      datePicker.preferredDatePickerStyle = .wheels
-    }
+    datePicker.preferredDatePickerStyle = .wheels
 
     let alert = UIAlertController(title: title, message: "\n\n\n\n\n\n\n", preferredStyle: .actionSheet)
     let resultGuard = makeResultGuard(for: alert, result: result)

@@ -191,10 +191,8 @@ final class LiquidGlassNavigationBarPlatformView:
     navigationBar.applyLiquidGlassEnvironment(configuration.environment)
     navigationBar.standardAppearance = appearance(for: configuration)
     navigationBar.compactAppearance = navigationBar.standardAppearance
-    if #available(iOS 15.0, *) {
-      navigationBar.scrollEdgeAppearance = navigationBar.standardAppearance
-      navigationBar.compactScrollEdgeAppearance = navigationBar.standardAppearance
-    }
+    navigationBar.scrollEdgeAppearance = navigationBar.standardAppearance
+    navigationBar.compactScrollEdgeAppearance = navigationBar.standardAppearance
 
     let currentItem = UINavigationItem(title: configuration.title)
     currentItem.rightBarButtonItems = barButtonItems(for: configuration.actions)
@@ -240,7 +238,7 @@ final class LiquidGlassNavigationBarPlatformView:
   ) -> UIBarButtonItem {
     let image = Self.image(systemName: action.symbol)
 
-    if #available(iOS 14.0, *), !action.menuActions.isEmpty {
+    if !action.menuActions.isEmpty {
       let children = action.menuActions.map { menuAction in
         uiMenuAction(menuAction)
       }
@@ -274,7 +272,6 @@ final class LiquidGlassNavigationBarPlatformView:
     return item
   }
 
-  @available(iOS 14.0, *)
   private func uiMenuAction(
     _ action: LiquidGlassMenuActionConfiguration
   ) -> UIAction {

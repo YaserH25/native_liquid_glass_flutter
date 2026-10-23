@@ -7,7 +7,7 @@ Android.
 The package is a Flutter plugin because the iOS implementation uses Swift code:
 
 - iOS 26 and newer: SwiftUI Liquid Glass through `glassEffect`.
-- iOS 13 through iOS 25: UIKit `UIVisualEffectView` material fallback.
+- iOS 15 through iOS 25: UIKit `UIVisualEffectView` material fallback.
 - Android, desktop, web, and tests: Flutter-rendered superellipse glass fallback.
 
 By default, regular content and controls stay in Flutter. Native iOS surfaces are
@@ -34,7 +34,7 @@ state while iOS renders the surfaces and controls that should feel native.
 | Need | Visual-only glass packages | `native_liquid_glass_flutter` |
 | --- | --- | --- |
 | iOS 26 Liquid Glass | Usually a Dart-rendered approximation with blur, shaders, or highlights | Uses SwiftUI `glassEffect` on iOS 26+ |
-| Older iOS support | Usually the same Flutter effect on every iOS version | Uses UIKit `UIVisualEffectView` material on iOS 13-25 |
+| Older iOS support | Usually the same Flutter effect on every iOS version | Uses UIKit `UIVisualEffectView` material on iOS 15-25 |
 | Native iOS controls | Usually custom Flutter widgets that look glassy | Optional `UISlider`, `UISwitch`, `UISegmentedControl`, `UIStepper`, `UIButton`, `UIMenu`, and `UITabBar` |
 | Native presenters | Often not included, or implemented as Flutter dialogs/sheets | `UIAlertController`, `UIDatePicker`, `UIActivityViewController`, and package glass fallbacks |
 | Cross-platform behavior | Often applies the same glass language everywhere | Keeps Android, desktop, web, and tests on Flutter-rendered fallbacks |

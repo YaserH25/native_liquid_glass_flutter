@@ -118,9 +118,7 @@ final class LiquidGlassTabBarPlatformView:
         environment.isDark ? 0.86 : 0.78
       )
       tabBar.standardAppearance = appearance
-      if #available(iOS 15.0, *) {
-        tabBar.scrollEdgeAppearance = appearance
-      }
+      tabBar.scrollEdgeAppearance = appearance
     }
 
     updateItems(map["items"])
