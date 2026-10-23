@@ -333,6 +333,72 @@ class RunnerTests: XCTestCase {
     XCTAssertFalse(item.enabled)
   }
 
+  func testTabBarKeepsItemsWhenOnlyItemDetailsChange() throws {
+    let messenger = LiquidGlassTestMessenger()
+    let platformView = LiquidGlassTabBarPlatformView(
+      frame: .zero,
+      viewId: 7,
+      arguments: tabBarArguments(inboxBadge: nil),
+      messenger: messenger
+    )
+    let tabBar = try XCTUnwrap(platformView.view().subviews.first as? UITabBar)
+    let originalItems = try XCTUnwrap(tabBar.items)
+
+    messenger.invoke(
+      "setConfiguration",
+      arguments: tabBarArguments(inboxBadge: "3"),
+      on: "native_liquid_glass_flutter/tab_bar/7"
+    )
+
+    let updatedItems = try XCTUnwrap(tabBar.items)
+    XCTAssertEqual(updatedItems.count, 2)
+    XCTAssertTrue(updatedItems[0] === originalItems[0])
+    XCTAssertTrue(updatedItems[1] === originalItems[1])
+    XCTAssertEqual(updatedItems[1].badgeValue, "3")
+    XCTAssertTrue(tabBar.selectedItem === originalItems[0])
+  }
+
+  func testTabBarRebuildsItemsWhenItemCountChanges() throws {
+    let messenger = LiquidGlassTestMessenger()
+    let platformView = LiquidGlassTabBarPlatformView(
+      frame: .zero,
+      viewId: 8,
+      arguments: tabBarArguments(inboxBadge: nil),
+      messenger: messenger
+    )
+    let tabBar = try XCTUnwrap(platformView.view().subviews.first as? UITabBar)
+
+    messenger.invoke(
+      "setConfiguration",
+      arguments: [
+        "selectedIndex": 0,
+        "items": [["label": "Home", "symbol": "house"]]
+      ],
+      on: "native_liquid_glass_flutter/tab_bar/8"
+    )
+
+    XCTAssertEqual(tabBar.items?.count, 1)
+    XCTAssertEqual(tabBar.items?.first?.title, "Home")
+    XCTAssertTrue(tabBar.selectedItem === tabBar.items?.first)
+  }
+
+  private func tabBarArguments(inboxBadge: String?) -> [String: Any] {
+    var inbox: [String: Any] = [
+      "label": "Inbox",
+      "symbol": "tray",
+      "selectedSymbol": "tray.fill"
+    ]
+    inbox["badge"] = inboxBadge
+
+    return [
+      "selectedIndex": 0,
+      "items": [
+        ["label": "Home", "symbol": "house", "selectedSymbol": "house.fill"],
+        inbox
+      ]
+    ]
+  }
+
   func testSurfaceBackdropViewDoesNotCaptureTouches() {
     let view = LiquidGlassPassthroughView(
       frame: CGRect(x: 0, y: 0, width: 100, height: 100)
@@ -497,4 +563,33 @@ class RunnerTests: XCTestCase {
     }
   }
 
+}
+
+private final class LiquidGlassTestMessenger: NSObject, FlutterBinaryMessenger {
+  private var handlers: [String: FlutterBinaryMessageHandler] = [:]
+
+  func send(onChannel channel: String, message: Data?) {}
+
+  func send(
+    onChannel channel: String,
+    message: Data?,
+    binaryReply callback: FlutterBinaryReply? = nil
+  ) {}
+
+  func setMessageHandlerOnChannel(
+    _ channel: String,
+    binaryMessageHandler handler: FlutterBinaryMessageHandler? = nil
+  ) -> FlutterBinaryMessengerConnection {
+    handlers[channel] = handler
+    return 0
+  }
+
+  func cleanUpConnection(_ connection: FlutterBinaryMessengerConnection) {}
+
+  func invoke(_ method: String, arguments: Any?, on channel: String) {
+    let message = FlutterStandardMethodCodec.sharedInstance().encode(
+      FlutterMethodCall(methodName: method, arguments: arguments)
+    )
+    handlers[channel]?(message) { _ in }
+  }
 }

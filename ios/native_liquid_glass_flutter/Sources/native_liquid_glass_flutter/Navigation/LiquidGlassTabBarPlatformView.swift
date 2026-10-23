@@ -1,7 +1,7 @@
 import Flutter
 import UIKit
 
-struct LiquidGlassTabBarItemConfiguration {
+struct LiquidGlassTabBarItemConfiguration: Equatable {
   let index: Int
   let title: String?
   let symbol: String
@@ -38,6 +38,7 @@ final class LiquidGlassTabBarPlatformView:
   private let tabBar: UITabBar
   private let channel: FlutterMethodChannel
   private var tabItems: [UITabBarItem] = []
+  private var itemConfigurations: [LiquidGlassTabBarItemConfiguration] = []
 
   init(
     frame: CGRect,
@@ -122,8 +123,7 @@ final class LiquidGlassTabBarPlatformView:
       }
     }
 
-    tabItems = parseItems(map["items"])
-    tabBar.setItems(tabItems, animated: false)
+    updateItems(map["items"])
     setSelectedIndex(selectedIndex)
 
     if tabBar.superview == nil {
@@ -137,36 +137,72 @@ final class LiquidGlassTabBarPlatformView:
     }
   }
 
-  private func parseItems(_ rawItems: Any?) -> [UITabBarItem] {
+  private func updateItems(_ rawItems: Any?) {
     let itemMaps = rawItems as? [[String: Any]] ?? []
-    return itemMaps.enumerated().map { index, map in
-      let configuration = LiquidGlassTabBarItemConfiguration(
-        index: index,
-        arguments: map
-      )
-      let image = UIImage(systemName: configuration.symbol)?
-        .withRenderingMode(.alwaysTemplate)
-      let selectedImage = UIImage(systemName: configuration.selectedSymbol)?
-        .withRenderingMode(.alwaysTemplate)
-      let item = UITabBarItem(
-        title: configuration.title,
-        image: image,
-        selectedImage: selectedImage
-      )
+    let configurations = itemMaps.enumerated().map { index, map in
+      LiquidGlassTabBarItemConfiguration(index: index, arguments: map)
+    }
+
+    // setItems rebuilds the bar and drops its selection, so keep the existing
+    // items and only update what changed while the tab count stays the same.
+    if configurations.count == itemConfigurations.count {
+      for (index, configuration) in configurations.enumerated() {
+        apply(
+          configuration,
+          to: tabItems[index],
+          previous: itemConfigurations[index]
+        )
+      }
+    } else {
+      tabItems = configurations.map { configuration in
+        let item = UITabBarItem()
+        apply(configuration, to: item, previous: nil)
+        return item
+      }
+      tabBar.setItems(tabItems, animated: false)
+    }
+
+    itemConfigurations = configurations
+  }
+
+  private func apply(
+    _ configuration: LiquidGlassTabBarItemConfiguration,
+    to item: UITabBarItem,
+    previous: LiquidGlassTabBarItemConfiguration?
+  ) {
+    if configuration.index != previous?.index {
       item.tag = configuration.index
+    }
+    if configuration.title != previous?.title {
+      item.title = configuration.title
       item.accessibilityLabel = configuration.title
+    }
+    if configuration.symbol != previous?.symbol {
+      item.image = Self.symbolImage(named: configuration.symbol)
+    }
+    if configuration.selectedSymbol != previous?.selectedSymbol {
+      item.selectedImage = Self.symbolImage(named: configuration.selectedSymbol)
+    }
+    if configuration.badge != previous?.badge {
       item.badgeValue = configuration.badge
+    }
+    if configuration.enabled != previous?.enabled {
       item.isEnabled = configuration.enabled
-      return item
     }
   }
 
   private func setSelectedIndex(_ index: Int) {
-    guard tabItems.indices.contains(index) else {
+    guard tabItems.indices.contains(index),
+      tabBar.selectedItem !== tabItems[index]
+    else {
       return
     }
 
     tabBar.selectedItem = tabItems[index]
+  }
+
+  private static func symbolImage(named name: String) -> UIImage? {
+    return UIImage(systemName: name)?.withRenderingMode(.alwaysTemplate)
   }
 
   func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
